@@ -1,0 +1,18 @@
+{
+  "categories": [
+    {
+      "name": "Live Music",
+      "images": [
+        "/images/gallery/live1.jpg",
+        "/images/gallery/live2.jpg"
+      ]
+    },
+    {
+      "name": "Karaoke",
+      "images": [
+        "/images/gallery/k1.jpg",
+        "/images/gallery/k2.jpg"
+      ]
+    }
+  ]
+}

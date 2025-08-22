@@ -1,0 +1,41 @@
+[
+  {
+    "title": "Local Live Band Saturday",
+    "slug": "live-band-saturday-2025-09-06",
+    "date": "2025-09-06",
+    "time": "19:30",
+    "tags": [
+      "Live Music",
+      "Saturday"
+    ],
+    "cover": "/images/events/live-band.jpg",
+    "badges": [
+      "Major",
+      "Tickets Soon"
+    ],
+    "summary": "Another fab night with rotating bands and a buzzing dance floor.",
+    "cta": {
+      "label": "View Details",
+      "href": "/events/live-band-saturday-2025-09-06"
+    }
+  },
+  {
+    "title": "Rainbow Karaoke",
+    "slug": "rainbow-karaoke-friday-2025-09-05",
+    "date": "2025-09-05",
+    "time": "20:00",
+    "tags": [
+      "Karaoke",
+      "Friday"
+    ],
+    "cover": "/images/events/karaoke.jpg",
+    "badges": [
+      "Regular"
+    ],
+    "summary": "Bring the vocals and the vibes \u2014 all welcome!",
+    "cta": {
+      "label": "View Details",
+      "href": "/events/rainbow-karaoke-friday-2025-09-05"
+    }
+  }
+]
