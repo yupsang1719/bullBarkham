@@ -8,7 +8,7 @@ import Home from './pages/Home'
 import About from './pages/About'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
-import Menu from './pages/Menu'
+import Menu_temp from './pages/Menu_temp'
 import Gallery from './pages/Gallery'
 import Bookings from './pages/Bookings'
 import Contact from './pages/Contact'
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
       { path: 'about', element: <About /> },
       { path: 'events', element: <Events /> },
       { path: 'events/:slug', element: <EventDetail /> },
-      { path: 'menu', element: <Menu /> },
+      { path: 'menu', element: <Menu_temp /> },
       { path: 'gallery', element: <Gallery /> },
       { path: 'bookings', element: <Bookings /> },
       { path: 'contact', element: <Contact /> },
