@@ -25,7 +25,7 @@ export default function Hero({
             loading="eager"
           />
           {overlay && (
-            <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/80 to-transparent" />
           )}
         </>
       )}
