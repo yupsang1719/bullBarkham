@@ -15,13 +15,13 @@ export default function Home() {
     <div>
       <Hero
         headline="Your Community Pub in Barkham"
-        subhead="Live music, karaoke, warm company — and a proper pint. Welcome to The Bull Barkham."
+        subhead="Barkham's Table Since Victorian Times."
         ctas={[
           { label: "See Events", href: "/events" },
           { label: "Book a Table", href: "/bookings" }
         ]}
         bgImage="/images/hero/pub-exterior.jpg"   // 👈 in /public/images/hero/
-        rightImage="/images/hero/pub-exterior.jpg" // 👈 in /public/images/hero/
+        rightImage="/images/hero/pub-interior.jpg" // 👈 in /public/images/hero/
         rightImageAlt="Inside The Bull Barkham pub"
       />
 

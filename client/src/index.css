@@ -159,3 +159,188 @@ body {
   .tab-pill { display: none; }
   .section-card { border: none; padding: 0; }
 }
+
+/* ---------- Type & palette ---------- */
+:root{
+  --hy-ink:#0b1220;          /* darker heading ink */
+  --hy-body:#27364a;         /* body a touch deeper for contrast */
+  --hy-muted:#5b6b81;
+  --hy-line:rgba(0,0,0,.12); /* rules */
+  --hy-accent:#1f5131;       /* Bull green */
+  --hy-accent-ink:#11331c;   /* darker green */
+  --hy-paper:#faf8f2;        /* whisper of parchment */
+}
+
+.hy-title, .hy-h2 { font-family: "Playfair Display", ui-serif, Georgia, "Times New Roman", Times, serif; }
+.hy-title { color: var(--hy-ink); font-weight: 700; letter-spacing: 0.2px; }
+.hy-h2 { font-size: clamp(1.25rem, 1.1rem + 0.8vw, 1.75rem); color: var(--hy-ink); }
+
+.hy-sub, .hy-body, .hy-muted, .hy-list, .hy-eyebrow { 
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+.hy-sub { color: #ffffff; opacity:.95; font-size: clamp(1rem, .95rem + .4vw, 1.125rem); }
+.hy-body { color: var(--hy-body); line-height: 1.7; }
+.hy-muted { color: var(--hy-muted); }
+.hy-eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size:.78rem; color: var(--hy-accent-ink); }
+
+/* ---------- Hero ---------- */
+.hero-img { position: relative; }
+.hero-gradient {
+  position:absolute; inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,.35), rgba(0,0,0,0) 40%, rgba(0,0,0,.45) 100%);
+}
+.hero-content {
+  position: relative;
+  max-width: 56rem;
+  padding: 2.5rem 0 3rem;
+  margin-top: -7rem; /* pull into image */
+}
+.hy-title { font-size: clamp(1.8rem, 1.2rem + 2.4vw, 3rem); color:#fff; }
+.hy-sub { margin-top:.4rem; }
+
+/* ---------- Cards & tiles ---------- */
+.hy-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,.06);
+  border-radius: 12px;
+  padding: 18px 18px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.06);
+}
+.hy-card--engraved {
+  background: linear-gradient(0deg, #fff, #fff), var(--hy-paper);
+  position: relative;
+}
+.hy-card--engraved:before,
+.hy-card--engraved:after{
+  content:""; position:absolute; inset:10px; border:1px solid rgba(0,0,0,.18); border-radius:10px; pointer-events:none;
+}
+.hy-card--engraved:after{ inset:14px; border-color: rgba(0,0,0,.12); border-style:dashed; }
+
+.hy-tile{
+  background:#fff;
+  border:1px solid rgba(0,0,0,.06);
+  border-radius:12px;
+  padding:16px;
+  text-align:center;
+}
+
+/* ---------- Buttons ---------- */
+.hy-btn{
+  display:inline-block; padding:10px 16px; border-radius:999px; font-weight:600;
+  border:1px solid rgba(0,0,0,.2); text-decoration:none;
+}
+.hy-btn--primary{
+  background: var(--hy-accent);
+  color:#fff; border-color: transparent;
+}
+.hy-btn--primary:hover{ background:#1a4128; }
+.hy-btn--ghost{
+  background:#fff; color:var(--hy-accent-ink);
+}
+
+/* ---------- Timeline (modern) ---------- */
+.hy-timeline { position:relative; }
+.hy-line{
+  position:absolute; left:12px; top:2.4rem; bottom:0;
+  width:2px; background: var(--hy-line);
+}
+.hy-timeline-list{ margin-left: 0; padding-left: 32px; }
+.hy-timeline-item{
+  position:relative; display:grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px; margin-bottom:16px;
+}
+.hy-dot{
+  position:absolute; left:-4px; top: 0.85rem;
+  width: 20px; height: 12px; display:flex; align-items:center; justify-content:center;
+  background: transparent;
+}
+.hy-year{
+  grid-column:1/2; display:flex; align-items:center; height: 40px;
+  font-family: "Playfair Display", ui-serif, Georgia, "Times New Roman", Times, serif;
+  color: var(--hy-accent-ink);
+}
+.hy-timeline-card{
+  grid-column:2/3;
+  background:#fff; border:1px solid rgba(0,0,0,.06);
+  border-radius:12px; padding:14px 16px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.05);
+}
+
+/* ---------- Small helpers ---------- */
+.hy-list{ color: var(--hy-body); }
+
+
+/* ---------- Improved responsive type & contrast ---------- */
+:root{
+  --hy-ink:#0b1220;          /* darker heading ink */
+  --hy-body:#27364a;         /* body a touch deeper for contrast */
+  --hy-muted:#5b6b81;
+}
+
+/* Headings scale better on mobile */
+.hy-title { 
+  font-size: clamp(1.6rem, 1.1rem + 3.2vw, 3rem);
+  line-height: 1.05;
+}
+.hy-h2 { 
+  font-size: clamp(1.125rem, 0.95rem + 1.2vw, 1.75rem);
+  line-height: 1.2;
+}
+.hy-sub {
+  font-size: clamp(0.95rem, 0.85rem + 0.8vw, 1.125rem);
+  line-height: 1.4;
+}
+
+/* ---------- Hero: image, scrim, and text container ---------- */
+.hy-hero-wrap { position: relative; }
+.hy-hero-img {
+  width: 100%; height: clamp(42vh, 36vh + 8vw, 70vh);
+  object-fit: cover;
+  object-position: 50% 40%; /* lift a touch to keep signage */
+}
+.hy-hero-scrim{
+  position:absolute; inset:0;
+  /* multi-stop for legibility top and bottom */
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.25) 30%, rgba(0,0,0,.25) 60%, rgba(0,0,0,.65) 100%);
+}
+
+/* Carded hero text with subtle blur for readability on busy images */
+.hy-hero-content{
+  position: relative;
+  max-width: 48rem;
+  margin: 0 auto;
+  padding: clamp(16px, 3vw, 24px) clamp(16px, 3vw, 24px) clamp(28px, 4vw, 36px);
+  margin-top: clamp(-84px, -12vw, -120px);
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+  background: linear-gradient(0deg, rgba(18,24,33,.55), rgba(18,24,33,.35));
+  color: #fff;
+  box-shadow: 0 12px 36px rgba(0,0,0,.25);
+}
+
+/* ---------- Tiles: tighter on mobile ---------- */
+.hy-tile{
+  padding: 14px;
+}
+
+/* ---------- Timeline: more readable on phones ---------- */
+.hy-timeline-list{ padding-left: 28px; }
+.hy-timeline-item{
+  grid-template-columns: 96px 1fr; /* shorter year column for phones */
+}
+.hy-year{
+  font-size: clamp(0.95rem, 0.85rem + 0.6vw, 1.1rem);
+}
+.hy-timeline-card{
+  padding: 12px 14px;
+}
+
+/* ---------- Touch targets ---------- */
+.hy-btn { padding: 12px 16px; font-size: 0.95rem; }
+
+/* ---------- Reduce motion (prefers-reduced-motion) ---------- */
+@media (prefers-reduced-motion: reduce){
+  .hero-gradient, .hy-hero-content, .hy-timeline-item { transition: none !important; }
+}
