@@ -88,7 +88,7 @@ async function notifyBookingEmails(b) {
         <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;">
           <h2 style="margin:0 0 12px;">Your booking is confirmed 🎉</h2>
           ${html}
-          <p>If you need to change anything, just reply to this email or call us.</p>
+          <p>If you need to change anything, just reply to this email or call us on +01183049428.</p>
         </div>
       `
     }).then(

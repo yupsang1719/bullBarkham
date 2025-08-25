@@ -31,7 +31,6 @@ export default function Header() {
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-black/10">
       <div className="container-outer flex h-16 items-center justify-between">
         <NavLink to="/" className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-md bg-bull-green/10 grid place-items-center font-bold text-bull-green">BB</div>
           <span className="font-serif text-lg">The Bull Barkham</span>
         </NavLink>
 

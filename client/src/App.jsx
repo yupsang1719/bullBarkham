@@ -31,7 +31,7 @@ function Footer() {
         </div>
         <div>
           <div className="font-medium mb-2">Hours</div>
-          <p>Mon–Thu 12–23 • Fri–Sat 12–24 • Sun 12–22 (example)</p>
+          <p>Mon–Thu 12–23 • Fri–Sat 12–24 • Sun 12–22</p>
         </div>
       </div>
       <div className="border-t border-black/10 py-4 text-center text-xs">

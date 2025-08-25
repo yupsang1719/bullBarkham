@@ -50,8 +50,8 @@ export default function Home() {
       <section className="section bg-white">
         <div className="container-outer grid md:grid-cols-3 gap-6">
           {[
-            { icon: <CalendarDays />, title: 'Weekly Events', desc: 'Open Mic, Karaoke, Live Bands' , href:'/events'},
-            { icon: <UtensilsCrossed />, title: 'Drinks & Menu', desc: 'Cocktails, wines, beers & more' , href:'/menu'},
+            { icon: <CalendarDays />, title: 'Whats On Bull', desc: 'Food, Karaoke, Live Musics' , href:'/events'},
+            { icon: <UtensilsCrossed />, title: 'Food Menu', desc: '' , href:'/menu'},
             { icon: <Images />, title: 'Gallery', desc: 'See the vibe from recent nights', href:'/gallery'}
           ].map((f, i) => (
             <a key={i} href={f.href} className="card p-6">

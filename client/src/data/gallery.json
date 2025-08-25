@@ -1,17 +1,40 @@
 {
   "categories": [
     {
-      "name": "Live Music",
+      "name": "Quiz Night",
       "images": [
-        "/images/gallery/live1.jpg",
-        "/images/gallery/live2.jpg"
+        "/images/gallery/quiz/1.jpg",
+        "/images/gallery/quiz/2.jpg",
+        "/images/gallery/quiz/3.jpg",
+        "/images/gallery/quiz/4.jpg",
+        "/images/gallery/quiz/5.jpg",
+        "/images/gallery/quiz/6.jpg",
+        "/images/gallery/quiz/7.jpg",
+        "/images/gallery/quiz/8.jpg",
+        "/images/gallery/quiz/9.jpg",
+        "/images/gallery/quiz/10.jpg",
+        "/images/gallery/quiz/11.jpg"
+        
       ]
     },
     {
-      "name": "Karaoke",
+      "name": "Grand-Opening",
       "images": [
-        "/images/gallery/k1.jpg",
-        "/images/gallery/k2.jpg"
+        "/images/gallery/grand-opening/1.jpg",
+        "/images/gallery/grand-opening/2.jpg",
+        "/images/gallery/grand-opening/3.jpg",
+        "/images/gallery/grand-opening/4.jpg",
+        "/images/gallery/grand-opening/5.jpg",
+        "/images/gallery/grand-opening/6.jpg",
+        "/images/gallery/grand-opening/7.jpg",
+        "/images/gallery/grand-opening/8.jpg",
+        "/images/gallery/grand-opening/9.jpg",
+        "/images/gallery/grand-opening/10.jpg",
+        "/images/gallery/grand-opening/11.jpg",
+        "/images/gallery/grand-opening/12.jpg",
+        "/images/gallery/grand-opening/13.jpg",
+        "/images/gallery/grand-opening/14.jpg",
+        "/images/gallery/grand-opening/15.jpg"
       ]
     }
   ]
