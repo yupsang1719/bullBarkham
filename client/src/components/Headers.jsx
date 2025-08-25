@@ -119,14 +119,14 @@ export default function Header() {
 
               <NavLink to="/gallery" className="link py-2" onClick={() => setOpen(false)}>Gallery</NavLink>
               <NavLink to="/about" className="link py-2" onClick={() => setOpen(false)}>About</NavLink>
-              <NavLink to="/contact" className="btn btn-ghost justify-start mt-1" onClick={() => setOpen(false)}>Contact</NavLink>
+              <NavLink to="/bookings" className="btn btn-ghost justify-start mt-1" onClick={() => setOpen(false)}>Book a Table</NavLink>
             </nav>
           </div>
 
           {/* Sticky bottom action */}
           <div className="px-4 py-3 border-t border-black/10 sticky bottom-0 bg-white">
-            <a href="/bookings" className="btn btn-primary w-full" onClick={() => setOpen(false)}>
-              Book a Table
+            <a href="/contact" className="btn btn-primary w-full" onClick={() => setOpen(false)}>
+              Contact Us
             </a>
           </div>
         </aside>
