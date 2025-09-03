@@ -35,6 +35,12 @@ export async function getMenu() {
   return data.default
 }
 
+export async function getShowtimeMenu() {
+  // create this JSON next to menu.json
+  const data = await import('../data/showtimeMenu.json')
+  return data.default
+}
+
 export async function getGallery() {
   const data = await import('../data/gallery.json')
   return data.default

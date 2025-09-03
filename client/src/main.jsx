@@ -9,6 +9,7 @@ import About from './pages/About'
 import Events from './pages/Events'
 import EventDetail from './pages/EventDetail'
 import Menu_temp from './pages/Menu'
+import ShowTimeMenu from './pages/ShowtimeMenu'
 import Gallery from './pages/Gallery'
 import Bookings from './pages/Bookings'
 import Contact from './pages/Contact'
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: 'events', element: <Events /> },
       { path: 'events/:slug', element: <EventDetail /> },
       { path: 'menu', element: <Menu_temp /> },
+      { path: 'menu/showtimeMenu', element: <ShowTimeMenu /> },
       { path: 'gallery', element: <Gallery /> },
       { path: 'bookings', element: <Bookings /> },
       { path: 'contact', element: <Contact /> },
