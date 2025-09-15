@@ -1,4 +1,3 @@
-// server/src/routes/bookings.js
 const router = require('express').Router()
 const Booking = require('../models/Booking')
 const Event = require('../models/Event')
@@ -7,7 +6,22 @@ const { isValidSessionId, serviceOf } = require('../utils/time')
 const { notifyBookingEmails } = require('../services/notify')
 
 const CAPACITY_PER_SESSION = 32
-function isIsoDate(s) { return /^\d{4}-\d{2}-\d{2}$/.test(s) }
+function isIsoDate(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s) }
+
+// Business rules: which sessions open by weekday (0=Sun..6=Sat)
+const OPEN_SESSIONS_BY_DOW = {
+  0: ['lunch-1','lunch-2'], // Sunday (roast only)
+  1: [],                    // Monday (closed)
+  2: ['lunch-1','lunch-2','dinner-1','dinner-2'],
+  3: ['lunch-1','lunch-2','dinner-1','dinner-2'],
+  4: ['lunch-1','lunch-2','dinner-1','dinner-2'],
+  5: ['lunch-1','lunch-2','dinner-1','dinner-2'],
+  6: ['lunch-1','lunch-2','dinner-1','dinner-2']
+}
+function localDow(iso) {
+  const [y,m,d] = iso.split('-').map(Number)
+  return new Date(y, m-1, d).getDay()
+}
 
 async function seatsUsed(date, session) {
   const agg = await Booking.aggregate([
@@ -17,18 +31,14 @@ async function seatsUsed(date, session) {
   return agg[0]?.used || 0
 }
 
-/**
- * POST /api/bookings
- * Create booking (sessions only). Auto-CONFIRMED if capacity allows.
- * Sends email to customer + manager (best-effort; does not block).
- */
+// PUBLIC create booking (sessions)
 router.post('/', async (req, res) => {
   try {
     const {
       eventSlug,
       name, phone, email,
       date,
-      session,                              // 'lunch-1' | 'lunch-2' | 'dinner-1' | 'dinner-2'
+      session,                 // REQUIRED: "lunch-1" | "dinner-2" ...
       partyAdults = 0, partyChildren = 0,
       hasAccessibilityNeeds = false, accessibilityNotes = '',
       occasion = '', occasionNotes = '',
@@ -38,6 +48,16 @@ router.post('/', async (req, res) => {
     if (!name || !phone || !email) return res.status(400).json({ error: 'Missing contact fields' })
     if (!date || !isIsoDate(date)) return res.status(400).json({ error: 'Invalid date' })
     if (!session || !isValidSessionId(session)) return res.status(400).json({ error: 'Invalid session' })
+
+    // DOW rules
+    const dow = localDow(date)
+    const allowed = OPEN_SESSIONS_BY_DOW[dow] || []
+    if (allowed.length === 0) {
+      return res.status(400).json({ error: 'Kitchen closed on Mondays. Please choose Tue–Sun.' })
+    }
+    if (!allowed.includes(session)) {
+      return res.status(400).json({ error: 'That session is not available on the selected day.' })
+    }
 
     const adults = Number(partyAdults) || 0
     const children = Number(partyChildren) || 0
@@ -61,7 +81,6 @@ router.post('/', async (req, res) => {
       if (ev) eventId = ev._id
     }
 
-    // Create (auto-CONFIRMED)
     const booking = await Booking.create({
       eventId,
       eventSlug: eventSlug || '',
@@ -82,35 +101,26 @@ router.post('/', async (req, res) => {
       status: 'CONFIRMED'
     })
 
-    // Fire-and-forget emails (customer + manager, with Reply-To set)
-    notifyBookingEmails(booking).catch(err =>
-      console.warn('[notify] error:', err?.message || err)
-    )
+    // fire-and-forget email sends (don’t block booking if SMTP fails)
+    notifyBookingEmails(booking).catch(err => console.warn('[notify] error:', err?.message || err))
 
-    return res.status(201).json({ ok: true, booking })
+    res.status(201).json({ ok: true, booking })
   } catch (e) {
     console.error('Create booking error', e)
-    return res.status(500).json({ error: 'Server error' })
+    res.status(500).json({ error: 'Server error' })
   }
 })
 
-/** GET /api/bookings (admin) */
+// ADMIN list + update stay the same
 router.get('/', auth, async (_req, res) => {
   const list = await Booking.find().sort({ createdAt: -1 })
   res.json(list)
 })
 
-/** PATCH /api/bookings/:id (admin) */
 router.patch('/:id', auth, async (req, res) => {
-  const allowed = ['PENDING', 'CONFIRMED', 'CANCELLED']
-  if (req.body.status && !allowed.includes(req.body.status)) {
-    return res.status(400).json({ error: 'Bad status' })
-  }
-  const updated = await Booking.findByIdAndUpdate(
-    req.params.id,
-    { $set: req.body },
-    { new: true }
-  )
+  const allowed = ['PENDING','CONFIRMED','CANCELLED']
+  if (req.body.status && !allowed.includes(req.body.status)) return res.status(400).json({ error: 'Bad status' })
+  const updated = await Booking.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
   if (!updated) return res.status(404).json({ error: 'Not found' })
   res.json(updated)
 })
