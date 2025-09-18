@@ -36,6 +36,21 @@
         "/images/gallery/grand-opening/14.jpg",
         "/images/gallery/grand-opening/15.jpg"
       ]
+    },
+    {
+      "name": "Comedy Night",
+      "images": [
+        "/images/gallery/comedyNight/Bull-645.jpg",
+        "/images/gallery/comedyNight/Bull-646.jpg",
+        "/images/gallery/comedyNight/Bull-647.jpg",
+        "/images/gallery/comedyNight/Bull-648.jpg",
+        "/images/gallery/comedyNight/Bull-649.jpg",
+        "/images/gallery/comedyNight/Bull-650.jpg",
+        "/images/gallery/comedyNight/Bull-651.jpg",
+        "/images/gallery/comedyNight/Bull-652.jpg",
+        "/images/gallery/comedyNight/Bull-653.jpg",
+        "/images/gallery/comedyNight/Bull-654.jpg"
+      ]
     }
   ]
 }

@@ -1,3 +1,4 @@
+// client/src/pages/Admin/AdminBookings.jsx
 import { useEffect, useMemo, useState } from 'react'
 import { adminApi } from '../../lib/admin'
 
@@ -10,22 +11,33 @@ const SESSION_LABELS = {
   'dinner-1': 'Dinner — 17:45–19:45',
   'dinner-2': 'Dinner — 20:00–22:00'
 }
-const SESSION_SERVICE = (id) => id.startsWith('lunch') ? 'lunch' : 'dinner'
+const SESSION_ORDER = ['lunch-1','lunch-2','dinner-1','dinner-2']
+const SESSION_SERVICE = (id) => id?.startsWith('lunch') ? 'lunch' : 'dinner'
 const STATUS = ['PENDING','CONFIRMED','CANCELLED']
 
 function cls(...a){ return a.filter(Boolean).join(' ') }
 function fmtDate(dt){ return dt.toISOString().slice(0,10) }
+function todayISO(){ return fmtDate(new Date()) }
 
 export default function AdminBookings() {
   // ---- Date header: Today by default, quick arrows to change day
-  const [date, setDate] = useState(() => fmtDate(new Date()))
+  const [date, setDate] = useState(todayISO())
   const [scope, setScope] = useState('ALL') // ALL | LUNCH | DINNER
+
+  // Data
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [err, setErr] = useState('')
-  const [util, setUtil] = useState([]) // [{session,label,service,remaining}]
+  const [util, setUtil] = useState([]) // [{session,label,service,remaining,closed?}]
+  const [closures, setClosures] = useState([])
+
+  // UI state
   const [changingId, setChangingId] = useState(null)
   const [active, setActive] = useState(null) // drawer booking
+
+  // Close session panel state
+  const [closeSessionId, setCloseSessionId] = useState('lunch-1')
+  const [closeReason, setCloseReason] = useState('')
 
   const goDay = (delta) => {
     const d = new Date(date+'T00:00:00')
@@ -58,10 +70,20 @@ export default function AdminBookings() {
     }
   }
 
-  useEffect(() => { loadBookings() }, [])
-  useEffect(() => { loadUtil() }, [date])
+  // Load closures per date
+  const loadClosures = async () => {
+    try {
+      const rows = await adminApi.listClosures(date)
+      setClosures(rows || [])
+    } catch (e) {
+      console.warn('[closures] load error:', e?.message)
+    }
+  }
 
-  // Filter the bookings client‑side for the chosen date + scope
+  useEffect(() => { loadBookings() }, [])
+  useEffect(() => { loadUtil(); loadClosures() }, [date])
+
+  // Filter the bookings client-side for the chosen date + scope
   const dayBookings = useMemo(() => {
     const list = bookings.filter(b => b.date === date)
     if (scope === 'ALL') return list
@@ -79,10 +101,12 @@ export default function AdminBookings() {
       map.get(k).push(b)
     })
     // ensure all sessions for date appear in order
-    const order = ['lunch-1','lunch-2','dinner-1','dinner-2']
-    return order
-      .map(k => ({ session: k, label: SESSION_LABELS[k], rows: map.get(k) || [] }))
+    return SESSION_ORDER.map(k => ({ session: k, label: SESSION_LABELS[k], rows: map.get(k) || [] }))
   }, [dayBookings])
+
+  // Quick lookup for closures
+  const closedSet = useMemo(() => new Set(closures.map(c => `${c.date}|${c.session}`)), [closures])
+  const isClosed = (sess) => closedSet.has(`${date}|${sess}`)
 
   async function changeStatus(id, newStatus) {
     try {
@@ -133,6 +157,25 @@ export default function AdminBookings() {
     URL.revokeObjectURL(url)
   }
 
+  async function closeThisSession() {
+    try {
+      await adminApi.createClosure({ date, session: closeSessionId, reason: closeReason })
+      setCloseReason('')
+      await Promise.all([loadClosures(), loadUtil()])
+    } catch (e) {
+      alert(e.message || 'Failed to close session')
+    }
+  }
+
+  async function reopenClosure(id) {
+    try {
+      await adminApi.deleteClosure(id)
+      await Promise.all([loadClosures(), loadUtil()])
+    } catch (e) {
+      alert(e.message || 'Failed to reopen session')
+    }
+  }
+
   return (
     <div className="grid gap-6">
       {/* Header: date quick nav + scope + actions */}
@@ -147,7 +190,7 @@ export default function AdminBookings() {
               onChange={e => setDate(e.target.value)}
             />
             <button className="btn btn-ghost" onClick={() => goDay(+1)} aria-label="Next day">▶</button>
-            <button className="btn btn-ghost" onClick={() => setDate(fmtDate(new Date()))}>Today</button>
+            <button className="btn btn-ghost" onClick={() => setDate(todayISO())}>Today</button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -157,13 +200,64 @@ export default function AdminBookings() {
           </div>
 
           <div className="ml-auto flex items-center gap-2">
-            <button className="btn btn-ghost" onClick={() => { loadBookings(); loadUtil(); }}>Refresh</button>
+            <button className="btn btn-ghost" onClick={() => { loadBookings(); loadUtil(); loadClosures(); }}>Refresh</button>
             <button className="btn btn-ghost" onClick={exportCsv}>Export CSV</button>
           </div>
         </div>
 
         {/* Utilization */}
         <Utilization util={util} scope={scope} />
+
+        {/* Close / reopen panel */}
+        <div className="mt-4 border-t pt-4">
+          <h2 className="text-base font-semibold mb-2">Session status (close / reopen)</h2>
+
+          <div className="grid sm:grid-cols-4 gap-3">
+            <div className="sm:col-span-1">
+              <label className="block text-sm mb-1">Date</label>
+              <input type="date" value={date} onChange={e=>setDate(e.target.value)} className="w-full rounded-md border px-3 py-2" />
+            </div>
+            <div className="sm:col-span-1">
+              <label className="block text-sm mb-1">Session</label>
+              <select value={closeSessionId} onChange={e=>setCloseSessionId(e.target.value)} className="w-full rounded-md border px-3 py-2">
+                {SESSION_ORDER.map(id => <option key={id} value={id}>{SESSION_LABELS[id]}</option>)}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm mb-1">Reason (optional)</label>
+              <input value={closeReason} onChange={e=>setCloseReason(e.target.value)} placeholder="Walk-ins / large party / kitchen capacity" className="w-full rounded-md border px-3 py-2" />
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {!isClosed(closeSessionId) ? (
+              <button onClick={closeThisSession} className="btn btn-primary">Close bookings for this session</button>
+            ) : (
+              <span className="inline-flex items-center rounded-md bg-red-50 text-red-700 border border-red-200 px-2 py-1 text-sm">
+                Closed: {SESSION_LABELS[closeSessionId]} ({date})
+              </span>
+            )}
+          </div>
+
+          {/* Closures list for the selected date */}
+          <div className="mt-3">
+            {closures.length ? (
+              <ul className="text-sm space-y-2">
+                {closures.map(c => (
+                  <li key={c._id} className="flex items-center justify-between rounded border border-black/10 px-3 py-2">
+                    <div>
+                      <span className="font-medium">{c.date}</span> — {SESSION_LABELS[c.session]}
+                      {c.reason ? <span className="text-black/60"> — {c.reason}</span> : null}
+                    </div>
+                    <button className="btn btn-ghost" onClick={() => reopenClosure(c._id)}>Reopen</button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-sm text-black/60">No closed sessions for {date}.</div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Content */}
@@ -179,14 +273,18 @@ export default function AdminBookings() {
             if (scope === 'DINNER' && service !== 'dinner') return null
 
             const avail = util.find(u => u.session === group.session)
-            const remaining = avail ? avail.remaining : CAP
+            const remaining = avail ? (avail.closed ? 0 : avail.remaining) : CAP
             const used = Math.max(CAP - remaining, 0)
+            const closed = isClosed(group.session)
 
             return (
               <div className="card p-4" key={group.session}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-sm">
-                    <div className="font-medium">{SESSION_LABELS[group.session]}</div>
+                    <div className="font-medium">
+                      {SESSION_LABELS[group.session]}
+                      {closed && <span className="ml-2 text-xs rounded px-2 py-0.5 bg-red-50 text-red-700 border border-red-200">Closed</span>}
+                    </div>
                     <div className="text-black/60">{service} · {used}/{CAP} seats used</div>
                   </div>
                 </div>
@@ -281,24 +379,27 @@ function Utilization({ util, scope }) {
   if (!util || util.length === 0) {
     return <div className="text-sm text-black/60">No availability data for this date.</div>
   }
-  const order = ['lunch-1','lunch-2','dinner-1','dinner-2']
   return (
     <div className="grid gap-2">
       <div className="text-sm text-black/70">Utilization (cap {CAP})</div>
       <div className="grid gap-1">
-        {order.map(id => {
-          const row = util.find(u => u.session === id) || { remaining: CAP, label: SESSION_LABELS[id], service: SESSION_SERVICE(id) }
+        {SESSION_ORDER.map(id => {
+          const row = util.find(u => u.session === id) || { remaining: CAP, label: SESSION_LABELS[id], service: SESSION_SERVICE(id), closed: false }
           if (scope === 'LUNCH' && row.service !== 'lunch') return null
           if (scope === 'DINNER' && row.service !== 'dinner') return null
-          const used = Math.max(CAP - (row.remaining ?? CAP), 0)
+          const remaining = row.closed ? 0 : (row.remaining ?? CAP)
+          const used = Math.max(CAP - remaining, 0)
           const pct = Math.min(Math.round((used / CAP) * 100), 100)
           return (
             <div key={id} className="flex items-center gap-3">
-              <div className="w-40 text-xs">{row.label || SESSION_LABELS[id]}</div>
+              <div className="w-40 text-xs">
+                {row.label || SESSION_LABELS[id]}
+                {row.closed && <span className="ml-2 text-[10px] rounded px-1.5 py-0.5 bg-red-50 text-red-700 border border-red-200">Closed</span>}
+              </div>
               <div className="flex-1 h-3 bg-black/10 rounded overflow-hidden">
                 <div className="h-full" style={{ width: `${pct}%` }} />
               </div>
-              <div className="w-24 text-xs text-right tabular-nums">{used}/{CAP} used</div>
+              <div className="w-28 text-xs text-right tabular-nums">{used}/{CAP} used</div>
             </div>
           )
         })}

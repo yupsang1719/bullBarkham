@@ -41,4 +41,9 @@ export const adminApi = {
   // Bookings (protected)
   listBookings: () => authFetch('/api/bookings'),
   updateBooking: (id, data) => authFetch(`/api/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+  // Closures (protected)
+  listClosures: (date) => authFetch(`/api/closures${date ? `?date=${encodeURIComponent(date)}` : ''}`),
+  createClosure: (data) => authFetch('/api/closures', { method: 'POST', body: JSON.stringify(data) }),
+  deleteClosure: (id) => authFetch(`/api/closures/${id}`, { method: 'DELETE' }),
 }
