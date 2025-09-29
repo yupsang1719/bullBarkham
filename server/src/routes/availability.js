@@ -1,47 +1,44 @@
+// server/src/routes/availability.js
 const router = require('express').Router()
 const Booking = require('../models/Booking')
+const Closure = require('../models/Closure')
+const { buildDaySlots, isIsoDate } = require('../utils/slots')
 
-const CAPACITY_PER_SESSION = 32
-const LABELS = {
-  'lunch-1':  'Lunch — 11:45 – 13:45',
-  'lunch-2':  'Lunch — 14:00 – 16:00',
-  'dinner-1': 'Dinner — 17:45 – 19:45',
-  'dinner-2': 'Dinner — 20:00 – 22:00'
-}
-const OPEN_SESSIONS_BY_DOW = {
-  0: ['lunch-1','lunch-2'], // Sun
-  1: [],                    // Mon
-  2: ['lunch-1','lunch-2','dinner-1','dinner-2'],
-  3: ['lunch-1','lunch-2','dinner-1','dinner-2'],
-  4: ['lunch-1','lunch-2','dinner-1','dinner-2'],
-  5: ['lunch-1','lunch-2','dinner-1','dinner-2'],
-  6: ['lunch-1','lunch-2','dinner-1','dinner-2']
-}
-function isIsoDate(s){ return /^\d{4}-\d{2}-\d{2}$/.test(s) }
-function localDow(iso){ const [y,m,d] = iso.split('-').map(Number); return new Date(y,m-1,d).getDay() }
+// Cap per half-hour slot (online). We keep walk-in buffer outside online cap.
+const SLOT_CAP = 7
 
 router.get('/', async (req, res) => {
-  const date = String(req.query.date || '')
-  if (!isIsoDate(date)) return res.status(400).json({ error: 'Bad date' })
+  try {
+    const date = String(req.query.date || '')
+    if (!isIsoDate(date)) return res.status(400).json({ error: 'Bad date' })
 
-  const dow = localDow(date)
-  const allowed = OPEN_SESSIONS_BY_DOW[dow] || []
-  if (allowed.length === 0) return res.json([]) // closed day
+    // Build 30-min slots for this date
+    const slots = buildDaySlots(date) // [{time, service}]
+    if (slots.length === 0) return res.json([]) // Monday → []
 
-  const agg = await Booking.aggregate([
-    { $match: { date, status: { $ne: 'CANCELLED' }, session: { $in: allowed } } },
-    { $group: { _id: '$session', used: { $sum: '$partySize' } } }
-  ])
-  const usedMap = Object.fromEntries(agg.map(a => [a._id, a.used]))
+    // Used seats per timeSlot
+    const agg = await Booking.aggregate([
+      { $match: { date, status: { $ne: 'CANCELLED' } } },
+      { $group: { _id: '$timeSlot', used: { $sum: '$partySize' } } }
+    ])
+    const usedMap = Object.fromEntries(agg.map(r => [r._id, r.used]))
 
-  const out = allowed.map(id => ({
-    session: id,
-    service: id.startsWith('lunch') ? 'lunch' : 'dinner',
-    label: LABELS[id],
-    remaining: Math.max(CAPACITY_PER_SESSION - (usedMap[id] || 0), 0)
-  }))
+    // Closures by service for this date
+    const dayClosures = await Closure.find({ date })
+    const closedServices = new Set(dayClosures.map(c => c.service))
 
-  res.json(out)
+    // Build output
+    const out = slots.map(({ time, service }) => {
+      const closed = closedServices.has(service)
+      const remaining = closed ? 0 : Math.max(SLOT_CAP - (usedMap[time] || 0), 0)
+      return { time, service, remaining, closed }
+    })
+
+    res.json(out)
+  } catch (e) {
+    console.error('availability error', e)
+    res.status(500).json({ error: 'Server error' })
+  }
 })
 
 module.exports = router

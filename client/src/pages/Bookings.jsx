@@ -3,45 +3,34 @@ import { useSearchParams } from 'react-router-dom'
 
 const API = import.meta.env.VITE_API_URL || ''
 
-// Labels shown if availability API isn't ready
-const SESSION_LABELS = {
-  'lunch-1':  'Lunch — 11:45 – 13:45',
-  'lunch-2':  'Lunch — 14:00 – 16:00',
-  'dinner-1': 'Dinner — 17:45 – 19:45',
-  'dinner-2': 'Dinner — 20:00 – 22:00'
-}
-const CAPACITY_PER_SESSION = 32
-
-// Which sessions are open on which weekday (0=Sun..6=Sat)
-const OPEN_SESSIONS_BY_DOW = {
-  0: ['lunch-1', 'lunch-2'],                                  // Sunday (roast only)
-  1: [],                                                      // Monday (closed)
-  2: ['lunch-1','lunch-2','dinner-1','dinner-2'],            // Tue
-  3: ['lunch-1','lunch-2','dinner-1','dinner-2'],            // Wed
-  4: ['lunch-1','lunch-2','dinner-1','dinner-2'],            // Thu
-  5: ['lunch-1','lunch-2','dinner-1','dinner-2'],            // Fri
-  6: ['lunch-1','lunch-2','dinner-1','dinner-2']             // Sat
+// Which services are open per weekday (0=Sun..6=Sat)
+const OPEN_SERVICES_BY_DOW = {
+  0: ['lunch'],                 // Sunday: lunch only
+  1: [],                        // Monday: closed
+  2: ['lunch','dinner'],        // Tue
+  3: ['lunch','dinner'],        // Wed
+  4: ['lunch','dinner'],        // Thu
+  5: ['lunch','dinner'],        // Fri
+  6: ['lunch','dinner']         // Sat
 }
 
-// Safe local parse of YYYY-MM-DD (avoids UTC off-by-one)
 function dowFromISO(iso) {
   if (!iso) return null
   const [y, m, d] = iso.split('-').map(Number)
-  return new Date(y, m - 1, d).getDay() // 0=Sun..6=Sat
+  return new Date(y, m - 1, d).getDay()
 }
 
 export default function Bookings() {
   const [search] = useSearchParams()
   const preselectEvent = search.get('event') || ''
 
-  // form state
   const [form, setForm] = useState({
     eventSlug: preselectEvent,
     name: '',
     phone: '',
     email: '',
     date: '',
-    session: '',                 // one of lunch-1, lunch-2, dinner-1, dinner-2
+    timeSlot: '',                // NEW: "HH:MM"
     partyAdults: '',
     partyChildren: '',
     hasAccessibilityNeeds: false,
@@ -54,59 +43,40 @@ export default function Bookings() {
   })
 
   const [sending, setSending] = useState(false)
-  const [status, setStatus] = useState(null) // { type: 'success'|'error', msg: string }
-  const [availability, setAvailability] = useState([]) // [{session, service, label, remaining}]
+  const [status, setStatus] = useState(null) // { type, msg }
+  const [availability, setAvailability] = useState([]) // [{time, service, remaining, closed}]
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], [])
 
-  // helpers
+  // Derived values
   const setField = (e) => {
     const { name, value, type, checked } = e.target
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
   }
-
   const totalGuests = useMemo(() => {
     const a = parseInt(form.partyAdults || '0', 10) || 0
     const c = parseInt(form.partyChildren || '0', 10) || 0
     return a + c
   }, [form.partyAdults, form.partyChildren])
 
-  // Load availability whenever date changes (and filter by weekday rules)
+  // Load availability when date changes
   useEffect(() => {
     setAvailability([])
-    setForm(f => ({ ...f, session: '' })) // reset chosen session on date change
+    setForm(f => ({ ...f, timeSlot: '' }))
     if (!form.date) return
 
     const controller = new AbortController()
-    const allowed = OPEN_SESSIONS_BY_DOW[dowFromISO(form.date)] || []
+    const dow = dowFromISO(form.date)
+    const allowedServices = OPEN_SERVICES_BY_DOW[dow] || []
 
     ;(async () => {
       try {
-        const url = `${API}/api/availability?date=${encodeURIComponent(form.date)}`
-        const res = await fetch(url, { signal: controller.signal })
+        const res = await fetch(`${API}/api/availability?date=${encodeURIComponent(form.date)}`, { signal: controller.signal })
         const data = res.ok ? await res.json() : []
-        let list =
-          Array.isArray(data) && data.every(d => d.session)
-            ? data
-            : Object.entries(SESSION_LABELS).map(([id, label]) => ({
-                session: id,
-                service: id.startsWith('lunch') ? 'lunch' : 'dinner',
-                label,
-                remaining: CAPACITY_PER_SESSION
-              }))
-
-        // only keep sessions that are allowed that day
-        list = list.filter(s => allowed.includes(s.session))
+        // Filter by services open that day
+        const list = Array.isArray(data) ? data.filter(s => allowedServices.includes(s.service)) : []
         setAvailability(list)
       } catch {
-        const list = Object.entries(SESSION_LABELS)
-          .map(([id, label]) => ({
-            session: id,
-            service: id.startsWith('lunch') ? 'lunch' : 'dinner',
-            label,
-            remaining: CAPACITY_PER_SESSION
-          }))
-          .filter(s => allowed.includes(s.session))
-        setAvailability(list)
+        setAvailability([])
       }
     })()
 
@@ -116,19 +86,23 @@ export default function Bookings() {
 
   const validate = () => {
     const dow = dowFromISO(form.date)
-    const allowedToday = OPEN_SESSIONS_BY_DOW[dow] || []
+    const allowedServices = OPEN_SERVICES_BY_DOW[dow] || []
 
     if (form.website) return 'Spam detected.'
     if (!form.name.trim()) return 'Please enter your name.'
     if (!form.phone.trim()) return 'Please enter your phone number.'
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return 'Please enter a valid email.'
     if (!form.date) return 'Please choose a date.'
-    if (dow === 1) return 'We’re closed for food on Mondays. Please choose Tue–Sun.'
-    if (!form.session) return 'Please choose a session.'
-    if (!allowedToday.includes(form.session)) return 'That session isn’t available on the selected day.'
-    if (totalGuests <= 0) return 'Please enter adults or children (at least 1).'
-    const sess = availability.find(s => s.session === form.session)
-    if (sess && sess.remaining <= 0) return 'Sorry, that session is fully booked. Please choose another.'
+    if (allowedServices.length === 0) return 'We’re closed for food on Mondays. Please choose Tue–Sun.'
+    if (!form.timeSlot) return 'Please choose a time.'
+    // Ensure chosen time exists in current availability
+    const row = availability.find(r => r.time === form.timeSlot)
+    if (!row) return 'That time is not available on the selected day.'
+    if (row.closed) return 'Bookings are closed for that time.'
+    if (row.remaining <= 0) return 'Sorry, that time is fully booked. Please choose another.'
+    const party = totalGuests
+    if (party <= 0) return 'Please enter adults or children (at least 1).'
+    if (party > 8)  return 'For groups of 9 or more, please call us so we can seat you comfortably.'
     return null
   }
 
@@ -146,10 +120,9 @@ export default function Bookings() {
         phone: form.phone,
         email: form.email,
         date: form.date,
-        session: form.session,
+        timeSlot: form.timeSlot,
         partyAdults: parseInt(form.partyAdults || '0', 10) || 0,
         partyChildren: parseInt(form.partyChildren || '0', 10) || 0,
-        groupSize: totalGuests, // legacy mirror; harmless if ignored
         hasAccessibilityNeeds: !!form.hasAccessibilityNeeds,
         accessibilityNotes: form.hasAccessibilityNeeds ? form.accessibilityNotes : '',
         occasion: form.occasion || '',
@@ -165,7 +138,7 @@ export default function Bookings() {
       })
       if (!res.ok) {
         const j = await res.json().catch(() => ({}))
-        throw new Error(j.error || 'Failed to send booking. Please try again.')
+        throw new Error(j.error || 'Failed to send booking. Please try another time.')
       }
 
       setStatus({ type: 'success', msg: 'Thanks! Your booking has been received and confirmed by email.' })
@@ -175,7 +148,7 @@ export default function Bookings() {
         phone: '',
         email: '',
         date: '',
-        session: '',
+        timeSlot: '',
         partyAdults: '',
         partyChildren: '',
         hasAccessibilityNeeds: false,
@@ -194,13 +167,12 @@ export default function Bookings() {
     }
   }
 
-  // UI helpers
-  const todayDow = dowFromISO(form.date)
-  const isMonday = todayDow === 1
-  const isSunday = todayDow === 0
+  const dow = dowFromISO(form.date)
+  const isMonday = dow === 1
+  const isSunday = dow === 0
 
-  const lunchSessions  = availability.filter(a => a.service === 'lunch')
-  const dinnerSessions = availability.filter(a => a.service === 'dinner')
+  const lunchSlots  = availability.filter(a => a.service === 'lunch')
+  const dinnerSlots = availability.filter(a => a.service === 'dinner')
 
   return (
     <section className="section">
@@ -216,8 +188,8 @@ export default function Bookings() {
         <form onSubmit={submit} className="card p-6 grid gap-4" noValidate>
           {status && (
             <div className={`rounded-md px-4 py-3 text-sm border ${status.type === 'success'
-                ? 'bg-green-50 text-green-800 border-green-200'
-                : 'bg-red-50 text-red-800 border-red-200'}`}>
+              ? 'bg-green-50 text-green-800 border-green-200'
+              : 'bg-red-50 text-red-800 border-red-200'}`}>
               {status.msg}
             </div>
           )}
@@ -263,38 +235,46 @@ export default function Bookings() {
             </div>
           </div>
 
-          {/* Date & Session */}
+          {/* Date & Time */}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm mb-1" htmlFor="date">Date*</label>
               <input id="date" type="date" name="date" min={todayStr} className="w-full rounded-md border px-3 py-2" value={form.date} onChange={setField} required />
             </div>
             <div>
-              <label className="block text-sm mb-1" htmlFor="session">Session*</label>
+              <label className="block text-sm mb-1" htmlFor="timeSlot">Time*</label>
               <select
-                id="session"
-                name="session"
+                id="timeSlot"
+                name="timeSlot"
                 className="w-full rounded-md border px-3 py-2"
-                value={form.session}
+                value={form.timeSlot}
                 onChange={setField}
                 required
-                disabled={!form.date || isMonday}
+                disabled={!form.date || isMonday || availability.length === 0}
               >
                 <option value="" disabled>
-                  {form.date ? (isMonday ? 'Closed on Mondays' : 'Choose a session') : 'Select date first'}
+                  {form.date
+                    ? (isMonday ? 'Closed on Mondays' : (availability.length ? 'Choose a time' : 'No times'))
+                    : 'Select date first'}
                 </option>
-                <optgroup label={isSunday ? 'Sunday Roast' : 'Lunch'}>
-                  {lunchSessions.map(s => (
-                    <option key={s.session} value={s.session} disabled={s.remaining <= 0}>
-                      {s.label || SESSION_LABELS[s.session]} {s.remaining <= 0 ? '— Full' : `— ${s.remaining} left`}
-                    </option>
-                  ))}
-                </optgroup>
-                {availability.some(s => s.service === 'dinner') && (
-                  <optgroup label="Dinner">
-                    {dinnerSessions.map(s => (
-                      <option key={s.session} value={s.session} disabled={s.remaining <= 0}>
-                        {s.label || SESSION_LABELS[s.session]} {s.remaining <= 0 ? '— Full' : `— ${s.remaining} left`}
+
+                {/* Lunch */}
+                {lunchSlots.length > 0 && (
+                  <optgroup label={dow === 0 ? 'Sunday Roast (12:00–16:00)' : 'Lunch (12:00–16:00)'}>
+                    {lunchSlots.map(s => (
+                      <option key={s.time} value={s.time} disabled={s.closed || s.remaining <= 0}>
+                        {s.time} {s.closed ? '— Closed' : (s.remaining <= 0 ? '— Full' : `— ${s.remaining} left`)}
+                      </option>
+                    ))}
+                  </optgroup>
+                )}
+
+                {/* Dinner (Tue–Sat) */}
+                {dinnerSlots.length > 0 && (
+                  <optgroup label="Dinner (18:00–22:00)">
+                    {dinnerSlots.map(s => (
+                      <option key={s.time} value={s.time} disabled={s.closed || s.remaining <= 0}>
+                        {s.time} {s.closed ? '— Closed' : (s.remaining <= 0 ? '— Full' : `— ${s.remaining} left`)}
                       </option>
                     ))}
                   </optgroup>
@@ -350,16 +330,26 @@ export default function Bookings() {
             <textarea id="specialNotes" name="specialNotes" rows="3" className="w-full rounded-md border px-3 py-2" placeholder="Any other requests?" value={form.specialNotes} onChange={setField} />
           </div>
 
-          {/* Summary */}
+          {/* Summary + note for large groups */}
           <div className="text-sm text-black/70">
-            <strong>Total Guests:</strong> {totalGuests || 0} / <strong>Capacity:</strong> 32 per session
+            <strong>Total Guests:</strong> {totalGuests || 0}
+            <div className="text-xs mt-1">For groups of <strong>9+</strong>, please call us and we’ll arrange the best seating.</div>
           </div>
 
-          <button type="submit" className="btn btn-primary disabled:opacity-60" disabled={sending || isMonday}>
-            {sending ? 'Sending…' : 'Send Enquiry'}
+          <div className="text-sm text-black/70">
+            <strong>Alergies</strong>
+            <div className="text-xs mt-1">Please inform us of allergies. Some dishes can be prepared vegan — ask your server.</div>
+          </div>
+
+          <button
+            type="submit"
+            className="btn btn-primary disabled:opacity-60"
+            disabled={sending || isMonday || !form.date || !form.timeSlot}
+          >
+            {sending ? 'Sending…' : 'Book Table'}
           </button>
           <p className="text-xs text-black/60">
-            We’ll confirm by phone or email. If it’s urgent, please call us at <a href="tel:+01183049428" className="link">+01183049428</a>
+            We’ll confirm by email. If it’s urgent, please call us at <a href="tel:+01183049428" className="link">+01183049428</a>
           </p>
         </form>
       </div>

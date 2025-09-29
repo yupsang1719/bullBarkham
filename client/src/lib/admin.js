@@ -18,11 +18,10 @@ async function authFetch(path, options = {}) {
 }
 
 export const adminApi = {
-  // NEW: DB-based login
+  // auth
   login: (email, password) =>
     fetch(`${API}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     }).then(async r => {
       if (!r.ok) {
@@ -32,18 +31,18 @@ export const adminApi = {
       return r.json()
     }),
 
-  // Events (protected)
+  // events
   listEvents: () => authFetch('/api/events'),
   createEvent: (data) => authFetch('/api/events', { method: 'POST', body: JSON.stringify(data) }),
   updateEvent: (id, data) => authFetch(`/api/events/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteEvent: (id) => authFetch(`/api/events/${id}`, { method: 'DELETE' }),
 
-  // Bookings (protected)
+  // bookings
   listBookings: () => authFetch('/api/bookings'),
   updateBooking: (id, data) => authFetch(`/api/bookings/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
 
-  // Closures (protected)
+  // closures (NEW: date + service)
   listClosures: (date) => authFetch(`/api/closures${date ? `?date=${encodeURIComponent(date)}` : ''}`),
-  createClosure: (data) => authFetch('/api/closures', { method: 'POST', body: JSON.stringify(data) }),
-  deleteClosure: (id) => authFetch(`/api/closures/${id}`, { method: 'DELETE' }),
+  createClosure: (payload) => authFetch('/api/closures', { method: 'POST', body: JSON.stringify(payload) }),
+  deleteClosure: (id) => authFetch(`/api/closures/${id}`, { method: 'DELETE' })
 }

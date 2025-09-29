@@ -9,6 +9,7 @@ app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }))
 
 // --- Routes ---
 
+app.use('/api/closures', require('./routes/closures'))
 app.use('/api/availability', require('./routes/availability'))
 app.use('/api/bookings', require('./routes/bookings'))
 app.use('/api/events', require('./routes/events'))

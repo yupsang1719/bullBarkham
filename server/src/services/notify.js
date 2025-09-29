@@ -14,23 +14,25 @@ if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
   console.warn('[notify] SMTP not configured; emails will be skipped.')
 }
 
-/* ---------- Labels ---------- */
-const SESSION_LABELS = {
-  'lunch-1':  'Lunch — 11:45–13:45',
-  'lunch-2':  'Lunch — 14:00–16:00',
-  'dinner-1': 'Dinner — 17:45–19:45',
-  'dinner-2': 'Dinner — 20:00–22:00'
-}
-
 /* ---------- Helpers ---------- */
 function escapeHtml(s='') {
   return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))
+}
+function cap(s='') { return s ? s.charAt(0).toUpperCase() + s.slice(1) : '' }
+
+/** Human label for the new model (service + timeSlot) */
+function bookingLabel(b) {
+  // e.g. "Lunch • 12:30" or "Dinner • 19:00"
+  const svc = b.service ? cap(String(b.service)) : ''
+  const time = b.timeSlot || ''
+  return [svc, time].filter(Boolean).join(' • ')
 }
 
 function summaryLines(b) {
   const lines = [
     `Date: ${b.date}`,
-    `Session: ${SESSION_LABELS[b.session] || b.session} (${b.service})`,
+    `Time: ${b.timeSlot || '—'}`,
+    `Service: ${b.service || '—'}`,
     `Guest: ${b.name}`,
     `Contact: ${b.phone} | ${b.email}`,
     `Party: ${b.partyAdults} adults, ${b.partyChildren} children (Total ${b.partySize})`
@@ -44,12 +46,12 @@ function summaryLines(b) {
 }
 
 function htmlTable(b){
-  const s = SESSION_LABELS[b.session] || b.session
   return `
   <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.5;">
     <table cellpadding="6" style="border-collapse:collapse;background:#fafafa;">
       <tr><td><strong>Date</strong></td><td>${b.date}</td></tr>
-      <tr><td><strong>Session</strong></td><td>${s} (${b.service})</td></tr>
+      <tr><td><strong>Time</strong></td><td>${escapeHtml(b.timeSlot || '—')}</td></tr>
+      <tr><td><strong>Service</strong></td><td>${escapeHtml(b.service || '—')}</td></tr>
       <tr><td><strong>Guest</strong></td><td>${escapeHtml(b.name)}</td></tr>
       <tr><td><strong>Contact</strong></td><td>${escapeHtml(b.phone)} | ${escapeHtml(b.email)}</td></tr>
       <tr><td><strong>Party</strong></td><td>${b.partyAdults} adults, ${b.partyChildren} children (Total ${b.partySize})</td></tr>
@@ -69,7 +71,9 @@ async function notifyBookingEmails(b) {
 
   const from = process.env.NOTIFY_EMAIL_FROM || process.env.SMTP_USER
   const toMgr = process.env.NOTIFY_EMAIL_TO || '' // may be comma-separated
-  const subjectCore = `${b.date} • ${SESSION_LABELS[b.session] || b.session} • ${b.partySize}p`
+
+  // Example: "2025-09-12 • Dinner • 19:00 • 4p"
+  const subjectCore = `${b.date} • ${bookingLabel(b)} • ${b.partySize}p`
 
   const textLines = summaryLines(b).join('\n')
   const html = htmlTable(b)
@@ -81,7 +85,7 @@ async function notifyBookingEmails(b) {
     mailer.sendMail({
       from,
       to: b.email,
-      replyTo: toMgr || undefined, // 👈 customer's reply goes to manager inbox
+      replyTo: toMgr || undefined, // customer's reply → manager
       subject: `Your booking is confirmed — The Bull Barkham (${subjectCore})`,
       text: `Thanks ${b.name}, your table is confirmed.\n\n${textLines}\n\nIf you need to change anything, reply to this email or call us.`,
       html: `
@@ -103,7 +107,7 @@ async function notifyBookingEmails(b) {
       mailer.sendMail({
         from,
         to: toMgr,
-        replyTo: b.email, // 👈 manager can reply straight to guest
+        replyTo: b.email, // manager can reply straight to guest
         subject: `New booking (CONFIRMED): ${subjectCore}`,
         text: textLines,
         html
