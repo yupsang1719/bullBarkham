@@ -21,6 +21,7 @@ import AdminLogin from './pages/Admin/AdminLogin'
 import AdminEvents from './pages/Admin/AdminEvents'
 import AdminEventForm from './pages/Admin/AdminEventForm'
 import AdminBookings from './pages/Admin/AdminBookings'
+import ChristmasBookingPage from './pages/ChristmasBooking'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -35,6 +36,7 @@ const router = createBrowserRouter([
       { path: 'gallery', element: <Gallery /> },
       { path: 'bookings', element: <Bookings /> },
       { path: 'contact', element: <Contact /> },
+      { path: '/christmas', element: <ChristmasBookingPage /> },
 
       // Admin
       {

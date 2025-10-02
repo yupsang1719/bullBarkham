@@ -6,6 +6,13 @@
     { "name": "Hummus", "ingredients": "Mediterranean veg, pine nut & avocado", "price": "£12", "badge": "v" }
   ],
 
+  "Lunch — ": [
+    { "name": "Steamed mussels in cider, bacon, and English cream", "price": "£12"},
+    { "name": "Honey and Pepper pork ribs with slaw" , "price": "£12"},
+    { "name": "The bull's ploughman’s ham, cheddar, Barkham Blue served with coleslaw, pickled onions, fresh baked baguette, apple celery chutney, and boiled egg" , "price": "£12"} ,
+    { "name": "Teriyaki chicken wings, sesame, honey, and chilli" , "price": "£12"}
+  ],
+
   "Lunch — All served with chips and salad": [
     { "name": "Ham, egg & chips", "ingredients": ""},
     { "name": "Smoked chicken, wardorf, avocado and pearl barley salad", "badge": "v (alt)" },
@@ -14,16 +21,16 @@
 
   "Main — Grazing": [
     { "name": "Olives, baked bread & flavoured butters", "ingredients": "", "price": "£8" },
-    { "name": "Honey & mustard pigs in blankets", "ingredients": "", "price": "£6" },
-    { "name": "Crackling with apple & ginger relish", "ingredients": "", "price": "£5" }
+    { "name": "Honey & mustard pigs in blankets", "ingredients": "", "price": "£6" }
   ],
 
   "Main — Starters": [
     { "name": "Cheddar, potato & truffle soup", "ingredients": "", "price": "£6" },
-    { "name": "Pressed ham hock terrine", "ingredients": "Pickles, mustard, baked bread", "price": "£7" },
+    { "name": "Crispy Fried Mac and Cheese Bites. Siracho Mayo.", "price": "£8" },
     { "name": "Steamed mussels", "ingredients": "Cider, bacon & English cream", "price": "£7" },
     { "name": "Honey & pepper pork ribs", "ingredients": "Slaw", "price": "£7" },
-    { "name": "Marinated wild mushrooms", "ingredients": "Toasted brioche, parmesan", "price": "£8" }
+    { "name": "Marinated wild mushrooms", "ingredients": "Toasted brioche, parmesan", "price": "£8" },
+    { "name": "Teriyaki chicken wings, sesame, Soy , and chilli", "ingredients": "", "price": "£7" }
   ],
 
   "Main — Mains": [
@@ -35,7 +42,9 @@
     { "name": "Smoked chicken “Waldorf” salad", "ingredients": "Avocado, pearl barley", "price": "£12", "badge": "vegan available" },
     { "name": "The Bull peppercorn burger", "ingredients": "American cheese, smoked bacon, peppercorn sauce, chunky chips & fried pickles", "price": "£18" },
     { "name": "Southern fried chicken burger", "ingredients": "Hash brown, American cheese & chicken burger", "price": "£17" },
-    { "name": "Watermelon & pineapple fritter burger", "ingredients": "Chunky chips, tomato & basil salad", "price": "£15", "badge": "v" }
+    { "name": "Watermelon & pineapple fritter burger", "ingredients": "Chunky chips, tomato & basil salad", "price": "£15", "badge": "v" },
+    { "name": "Beer battered cod and chips, curry sauce mushy peas and tartare sauce", "price": "£15"},
+    { "name": "Chef's Choice Pie, Mash, Greens, Gravy", "price": "£17"}
   ],
 
   "Main — Sides": [
@@ -52,24 +61,16 @@
     { "name": "The Bull cheeseboard", "ingredients": "Waterloo, Barkham Blue & Godminster Cheddar; crackers, celery, apple & chutney", "price": "£10" },
     { "name": "Selection of ice creams or sorbets", "ingredients": "Ask for today’s flavours (three scoops)", "price": "£5" },
     { "name": "Dark chocolate & raspberry brownie", "ingredients": "Vanilla crème fraîche & salted caramel", "price": "£8" },
-    { "name": "Lemon tart", "ingredients": "Raspberry sorbet & meringue", "price": "£8" },
     { "name": "Barkham sticky toffee pudding", "ingredients": "Sticky toffee sauce & custard", "price": "£7" }
-  ],
-
-  "Sunday Roasts — Starters": [
-    { "name": "Cheddar, potato & truffle soup", "ingredients": "", "price": "£6" },
-    { "name": "Pressed ham hock terrine", "ingredients": "Pickles, mustard, baked bread", "price": "£7" },
-    { "name": "Steamed mussels", "ingredients": "Cider, bacon & English cream", "price": "£7" },
-    { "name": "Honey & pepper pork ribs", "ingredients": "Slaw", "price": "£7" },
-    { "name": "Marinated wild mushrooms", "ingredients": "Toasted brioche, parmesan", "price": "£8" }
   ],
 
   "Sunday Roasts — Mains": [
     { "name": "Loin of Berkshire pork", "ingredients": "Apple sauce, crackling, sage & onion stuffing", "price": "£17.95" },
-    { "name": "“Pig carved” beef sirloin", "ingredients": "Yorkshire pudding, watercress, horseradish", "price": "£19.95" },
+    { "name": "“Pink carved” beef sirloin", "ingredients": "Yorkshire pudding, watercress, horseradish", "price": "£19.95" },
     { "name": "Free‑range half roasted chicken", "ingredients": "Bread sauce, sage & onion stuffing", "price": "£17.95" },
     { "name": "Wild mushroom & truffle wellington", "ingredients": "Parsley white sauce", "price": "£16.95", "badge": "v" },
-    { "name": "Trio of meats", "ingredients": "Beef, pork & chicken with all the trimmings", "price": "£24.95" }
+    { "name": "Trio of meats", "ingredients": "Beef, pork & chicken with all the trimmings", "price": "£24.95" },
+    { "name": "Smaller plates: Chicken, pork and beef", "price": "£6.95" }
   ],
 
   "Sunday Roasts - Desserts": [
@@ -77,7 +78,6 @@
     { "name": "The Bull cheeseboard", "ingredients": "Waterloo, Barkham Blue & Godminster Cheddar; crackers, celery, apple & chutney", "price": "£10" },
     { "name": "Selection of ice creams or sorbets", "ingredients": "Ask for today’s flavours (three scoops)", "price": "£5" },
     { "name": "Dark chocolate & raspberry brownie", "ingredients": "Vanilla crème fraîche & salted caramel", "price": "£8" },
-    { "name": "Lemon tart", "ingredients": "Raspberry sorbet & meringue", "price": "£8" },
     { "name": "Barkham sticky toffee pudding", "ingredients": "Sticky toffee sauce & custard", "price": "£7" }
   ],
 
