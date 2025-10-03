@@ -61,7 +61,8 @@
     { "name": "The Bull cheeseboard", "ingredients": "Waterloo, Barkham Blue & Godminster Cheddar; crackers, celery, apple & chutney", "price": "£10" },
     { "name": "Selection of ice creams or sorbets", "ingredients": "Ask for today’s flavours (three scoops)", "price": "£5" },
     { "name": "Dark chocolate & raspberry brownie", "ingredients": "Vanilla crème fraîche & salted caramel", "price": "£8" },
-    { "name": "Barkham sticky toffee pudding", "ingredients": "Sticky toffee sauce & custard", "price": "£7" }
+    { "name": "Barkham sticky toffee pudding", "ingredients": "Sticky toffee sauce & custard", "price": "£7" },
+    { "name": "Banofee Cheesecake. Caramelized Banana. Merangue", "price": "£8" }
   ],
 
   "Sunday Roasts — Mains": [
@@ -78,7 +79,8 @@
     { "name": "The Bull cheeseboard", "ingredients": "Waterloo, Barkham Blue & Godminster Cheddar; crackers, celery, apple & chutney", "price": "£10" },
     { "name": "Selection of ice creams or sorbets", "ingredients": "Ask for today’s flavours (three scoops)", "price": "£5" },
     { "name": "Dark chocolate & raspberry brownie", "ingredients": "Vanilla crème fraîche & salted caramel", "price": "£8" },
-    { "name": "Barkham sticky toffee pudding", "ingredients": "Sticky toffee sauce & custard", "price": "£7" }
+    { "name": "Barkham sticky toffee pudding", "ingredients": "Sticky toffee sauce & custard", "price": "£7" },
+    { "name": "Banofee Cheesecake. Caramelized Banana. Merangue", "price": "£8" }
   ],
 
   "Sunday Roasts — All roasts served with": [
