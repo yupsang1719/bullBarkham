@@ -13,7 +13,7 @@ app.use('/api/closures', require('./routes/closures'))
 app.use('/api/availability', require('./routes/availability'))
 app.use('/api/bookings', require('./routes/bookings'))
 app.use('/api/events', require('./routes/events'))
-app.use('/api/christmas', require('./routes/christmas'))
+// app.use('/api/christmas', require('./routes/christmas'))
 app.use('/api/auth', require('./routes/auth'))      // 👈 NEW DB-based auth
 
 // --- Start ---
