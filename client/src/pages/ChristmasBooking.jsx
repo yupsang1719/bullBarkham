@@ -1,372 +1,312 @@
 // client/src/pages/ChristmasBooking.jsx
 import { useEffect, useMemo, useState } from 'react'
-import { Elements, useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js'
-import { loadStripe } from '@stripe/stripe-js'
 
 const API = import.meta.env.VITE_API_URL || ''
 
-// Try to init Stripe publishable key safely (no throw → no blank screen)
-const PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ''
-const stripePromise = PUBLISHABLE_KEY.startsWith('pk_') ? loadStripe(PUBLISHABLE_KEY) : null
+/* ----------------- Canonical sittings ----------------- */
+const SITTINGS = [
+  { id: 'xmas-early', label: '12:00 – 2:00 PM', capacity: 30 },
+  { id: 'xmas-late',  label: '2:30 – 4:30 PM', capacity: 32 },
+]
 
-// Sittings
-const SESSION_LABELS = {
-  'xmas-a': '12:00 – 14:00',
-  'xmas-b': '14:30 – 16:30'
+// Accept legacy strings from older availability/URLs and map → canonical id
+function normalizeSittingId(input) {
+  const s = String(input || '').trim().toLowerCase()
+  if (s === 'xmas-early' || s === 'xmas_early') return 'xmas-early'
+  if (s === 'xmas-late'  || s === 'xmas_late')  return 'xmas-late'
+  if (['12-2','12','12:00','12:00-14:00','12:00 – 14:00','12 – 14','12-00-14-00'].includes(s)) return 'xmas-early'
+  if (['2:30-4:30','14:30','14:30-16:30','14:30 – 16:30','2:30 – 4:30','14-30-16-30'].includes(s)) return 'xmas-late'
+  return null
 }
 
-// Prices (override via client .env if you like)
-const A_PRICE = Number(import.meta.env.VITE_XMAS_ADULT_PRICE || 95)
-const C_PRICE = Number(import.meta.env.VITE_XMAS_CHILD_PRICE || 50)
-const DEP_PP  = Number(import.meta.env.VITE_XMAS_DEPOSIT_PER_PERSON || 25)
+/* ----------------- Menu ----------------- */
+const COURSES = ['starters', 'mains', 'desserts']
+const COURSE_LABELS = { starters: 'Starters', mains: 'Mains', desserts: 'Desserts' }
 
-function Notice({ type = 'info', children }) {
-  const cls =
-    type === 'error'   ? 'bg-red-50 text-red-800 border-red-200' :
-    type === 'success' ? 'bg-green-50 text-green-800 border-green-200' :
-                         'bg-blue-50 text-blue-800 border-blue-200'
-  return <div className={`rounded-md px-4 py-3 text-sm border ${cls}`}>{children}</div>
+const MENU = {
+  starters: [
+    "Chicken liver, foie gras & brandy parfait, red onion jelly, toasted brioche",
+    "Pan-fried scallops, Loch Duart smoked salmon, maple bacon crumb, celeriac purée",
+    "Wild mushroom & truffle arancini, rocket pesto, balsamic",
+    "Five-spice crispy confit duck, cucumber, spring onion, pickled ginger, sticky soy",
+    "Crispy tempura prawns, pineapple Bombay potato salad, coriander",
+  ],
+  mains: [
+    "Roast bronze turkey, pigs in blankets, sprout & parmesan, duck-fat roast potatoes, bread sauce, red cabbage, pouring gravy, maple parsnips",
+    "Slow-braised short rib, truffle mash, maple parsnips, parsley mash, parsnip crisps",
+    "Pan-fried line-caught sea bass, garlic prawns, balsamic Mediterranean veg, salsa verde, rocket",
+    "Pink carved rack of lamb, dauphinoise potatoes, green beans, black pudding croquette, redcurrant jus",
+    "Wild mushroom, tarragon & butternut wellington, roast potatoes, parsnips, red cabbage, hollandaise",
+  ],
+  desserts: [
+    "Stout Christmas pudding, brandy ice cream",
+    "Panna cotta, mango, passionfruit meringue",
+    "Banoffee cheesecake, caramelised bananas, sticky toffee sauce",
+    "Mince pie truffle, Cointreau cream, dark chocolate",
+    "Selection of ice creams / sorbets",
+    "Christmas cheese board (+£10)",
+  ],
 }
 
-/** Step 2: Payment + final booking */
-function XmasPaymentStep({ clientSecret, form, onBooked, setStatus }) {
-  const stripe = useStripe()
-  const elements = useElements()
-  const [submitting, setSubmitting] = useState(false)
+function numberClamp(n){ const x = Number(n)||0; return x<0?0:Math.floor(x) }
 
-  async function confirmPaymentAndBook() {
-    if (!stripe || !elements) return
-    setSubmitting(true)
-    setStatus(null)
-
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      redirect: 'if_required',
-    })
-
-    if (error) {
-      setSubmitting(false)
-      return setStatus({ type: 'error', msg: error.message || 'Payment failed. Please try another card.' })
-    }
-
-    try {
-      const r = await fetch(`${API}/api/christmas/book`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentIntentId: paymentIntent.id,
-          session: form.session,
-          adults: parseInt(form.adults || '0', 10) || 0,
-          children: parseInt(form.children || '0', 10) || 0,
-          name: form.name,
-          phone: form.phone,
-          email: form.email,
-          hasAccessibilityNeeds: !!form.hasAccessibilityNeeds,
-          accessibilityNotes: form.hasAccessibilityNeeds ? (form.accessibilityNotes || '') : '',
-          allergies: form.allergies || '',
-          specialNotes: form.specialNotes || ''
-        })
-      })
-      const j = await r.json().catch(() => ({}))
-      if (!r.ok) throw new Error(j.error || 'Booking save failed')
-
-      setStatus({ type: 'success', msg: 'Deposit received — your Christmas table is confirmed! 🎄' })
-      onBooked(j)
-    } catch (e) {
-      setStatus({ type: 'error', msg: e.message })
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  return (
-    <div className="grid gap-3">
-      <PaymentElement options={{ layout: 'tabs' }} />
-      <button
-        type="button"
-        className="btn btn-primary mt-2 disabled:opacity-60"
-        onClick={confirmPaymentAndBook}
-        disabled={submitting}
-      >
-        {submitting ? 'Confirming…' : 'Confirm Payment & Book'}
-      </button>
-      <p className="text-xs text-black/60">
-        Your deposit is <strong>non-refundable</strong> if you don’t attend. It is credited against your bill on the day.
-      </p>
-    </div>
-  )
-}
-
-export default function ChristmasBookingPage() {
-  const [availability, setAvailability] = useState([]) // [{session,label,remaining}]
-  const [clientSecret, setClientSecret] = useState('')
+export default function ChristmasBooking() {
+  // availability shape: { 'xmas-early': {remaining?:number}, 'xmas-late': {remaining?:number} }
+  const [availability, setAvailability] = useState({
+    'xmas-early': { remaining: undefined },
+    'xmas-late':  { remaining: undefined },
+  })
   const [status, setStatus] = useState(null)
-  const [booking, setBooking] = useState(null)
-  const [loadingPI, setLoadingPI] = useState(false)
+  const [sending, setSending] = useState(false)
 
   const [form, setForm] = useState({
-    session: '',
-    adults: '',
-    children: '',
-    name: '',
-    phone: '',
-    email: '',
-    hasAccessibilityNeeds: false,
-    accessibilityNotes: '',
-    allergies: '',
-    specialNotes: ''
+    name: '', phone: '', email: '',
+    session: '',                // always stores canonical id from the select
+    partyAdults: '', partyChildren: '',
+    allergies: '', occasionNotes: '', specialNotes: '',
+    starters: {}, mains: {}, desserts: {}
   })
 
-  const totalGuests = useMemo(() => {
-    const a = parseInt(form.adults || '0', 10) || 0
-    const c = parseInt(form.children || '0', 10) || 0
-    return a + c
-  }, [form.adults, form.children])
+  /* ------------ Derived counts ------------ */
+  const totalGuests = useMemo(() =>
+    (Number(form.partyAdults||0) + Number(form.partyChildren||0)), [form.partyAdults, form.partyChildren])
 
-  const totalPrice = (A_PRICE * (parseInt(form.adults || '0', 10) || 0)) +
-                     (C_PRICE * (parseInt(form.children || '0', 10) || 0))
-  const depositDue = DEP_PP * totalGuests
+  const totals = useMemo(() => {
+    const sum = (obj={}) => Object.values(obj).reduce((s,v)=>s+(Number(v)||0),0)
+    return {
+      starters: sum(form.starters),
+      mains: sum(form.mains),
+      desserts: sum(form.desserts),
+    }
+  }, [form.starters, form.mains, form.desserts])
 
-  // Availability (fixed Christmas date handled server side)
+  const courseOk = {
+    starters: totals.starters === totalGuests && totalGuests>0,
+    mains:    totals.mains    === totalGuests && totalGuests>0,
+    desserts: totals.desserts === totalGuests && totalGuests>0,
+  }
+  const allOk = totalGuests>0 && courseOk.starters && courseOk.mains && courseOk.desserts && !!form.session
+
+  /* ------------ Load availability (and normalize keys) ------------ */
   useEffect(() => {
-    fetch(`${API}/api/christmas/availability`)
-      .then(r => r.json())
-      .then(d => Array.isArray(d) ? setAvailability(d) : setAvailability([]))
-      .catch(() => setAvailability([]))
+    let cancel = false
+    ;(async () => {
+      try {
+        const res = await fetch(`${API}/api/christmas/availability`)
+        if (!res.ok) throw new Error('availability not found')
+        const raw = await res.json()
+
+        // Build next state with canonical keys
+        const next = { 'xmas-early': {}, 'xmas-late': {} }
+        for (const [key, val] of Object.entries(raw || {})) {
+          const canon = normalizeSittingId(key)
+          if (canon) next[canon] = { remaining: Number(val?.remaining) }
+        }
+        if (!cancel) setAvailability(a => ({ ...a, ...next }))
+      } catch {
+        // Keep “checking…” placeholders
+      }
+    })()
+    return () => { cancel = true }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  function setField(e) {
-    const { name, value, type, checked } = e.target
-    setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }))
+  /* ------------ Helpers ------------ */
+  const setField = (e) => {
+    const { name, value } = e.target
+    setStatus(null)
+    setForm(f => ({ ...f, [name]: value }))
   }
 
-  async function startPayment() {
+  const setCount = (course, item, value) => {
+    setStatus(null)
+    setForm(f => ({
+      ...f,
+      [course]: { ...(f[course] || {}), [item]: numberClamp(value) }
+    }))
+  }
+
+  /* ------------ Submit (create Stripe checkout session) ------------ */
+  const submit = async (e) => {
+    e.preventDefault()
     setStatus(null)
 
-    // Basic validations
-    if (!form.session) return setStatus({ type: 'error', msg: 'Please choose a sitting.' })
-    if (!form.name.trim()) return setStatus({ type: 'error', msg: 'Please enter your name.' })
-    if (!form.phone.trim()) return setStatus({ type: 'error', msg: 'Please enter your phone number.' })
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return setStatus({ type: 'error', msg: 'Please enter a valid email.' })
-    if (totalGuests <= 0) return setStatus({ type: 'error', msg: 'Please add at least 1 guest.' })
-
-    // Stripe key guard
-    if (!stripePromise) {
-      return setStatus({
-        type: 'error',
-        msg: 'Payment setup missing. Please set VITE_STRIPE_PUBLISHABLE_KEY in client/.env and reload.'
-      })
+    // form.session is already canonical because the select uses canonical values
+    const sittingId = form.session
+    if (!sittingId || !['xmas-early','xmas-late'].includes(sittingId)) {
+      return setStatus({ type:'error', msg:'Please choose a valid sitting.' })
+    }
+    if (!allOk) {
+      return setStatus({ type:'error', msg:'Please set party size, choose a sitting, and allocate choices for every course equal to total guests.' })
     }
 
-    setLoadingPI(true)
-    try {
-      const r = await fetch(`${API}/api/christmas/create-intent`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session: form.session,
-          adults: parseInt(form.adults || '0', 10) || 0,
-          children: parseInt(form.children || '0', 10) || 0
-        })
-      })
-      const j = await r.json().catch(() => ({}))
-      if (!r.ok) throw new Error(j.error || 'Failed to initialise payment')
+    // Optional: quick client check vs remaining
+    const remaining = availability[sittingId]?.remaining
+    if (typeof remaining === 'number' && remaining < totalGuests) {
+      return setStatus({ type:'error', msg:`Only ${remaining} seats left in this sitting.` })
+    }
 
-      setClientSecret(j.clientSecret) // now render <Elements />
-      setStatus({ type: 'info', msg: 'Secure card form ready — please complete payment to reserve.' })
-    } catch (e) {
-      setStatus({ type: 'error', msg: e.message })
+    setSending(true)
+    try {
+      const payload = {
+        // the server route expects these names:
+        session: sittingId, // canonical id
+        partyAdults: Number(form.partyAdults||0),
+        partyChildren: Number(form.partyChildren||0),
+
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        email: form.email.trim(),
+
+        allergies: form.allergies,
+        occasionNotes: form.occasionNotes,
+        specialNotes: form.specialNotes,
+
+        selections: {
+          starters: Object.entries(form.starters).map(([item,count])=>({ item, count:Number(count)||0 })),
+          mains:    Object.entries(form.mains).map(([item,count])=>({ item, count:Number(count)||0 })),
+          desserts: Object.entries(form.desserts).map(([item,count])=>({ item, count:Number(count)||0 })),
+        }
+      }
+
+      const res = await fetch(`${API}/api/stripe/create-checkout-session`, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const data = await res.json().catch(()=>({}))
+      if (!res.ok || !data?.url) {
+        throw new Error(data?.error || 'Failed to start checkout')
+      }
+
+      // Off you go to Stripe Checkout
+      window.location.assign(data.url)
+    } catch (err) {
+      setStatus({ type:'error', msg: err.message })
     } finally {
-      setLoadingPI(false)
+      setSending(false)
     }
   }
 
-  const elementsOptions = clientSecret
-    ? { clientSecret, appearance: { labels: 'floating' } }
-    : null
+  /* ------------ UI ------------ */
+  const selectedId = form.session
+  const selectedRemaining = selectedId ? availability[selectedId]?.remaining : undefined
+  const selectedCapacity = selectedId ? (SITTINGS.find(s => s.id === selectedId)?.capacity) : undefined
 
   return (
     <section className="section">
-      <div className="container-outer max-w-2xl">
-        <div className="card p-6 grid gap-5">
-          <header className="grid gap-2">
-            <h1 className="h1">Christmas Day Bookings</h1>
-            <p className="text-sm text-black/70">
-              Two sittings: <strong>{SESSION_LABELS['xmas-a']} (30 seats)</strong> ·{' '}
-              <strong>{SESSION_LABELS['xmas-b']} (32 seats)</strong><br />
-              £{A_PRICE} per adult • £{C_PRICE} per child • Deposit £{DEP_PP} per person (charged now).
-            </p>
-            {!stripePromise && (
-              <Notice type="error">
-                Stripe publishable key missing/invalid. Add <code>VITE_STRIPE_PUBLISHABLE_KEY</code> to <code>client/.env</code> and restart the dev server.
-              </Notice>
-            )}
-          </header>
+      <div className="container-outer max-w-3xl">
+        <h1 className="h1 mb-2">🎄 Christmas Day Booking</h1>
+        <p className="text-black/70 mb-4">
+          £95 adults • £50 children — Free prosecco (adults) / soft drink (children).
+          Pre-order below so the kitchen is ready!
+        </p>
 
-          {status && <Notice type={status.type}>{status.msg}</Notice>}
+        {status && (
+          <div className={`border p-3 rounded mb-4 ${status.type==='success'?'bg-green-50 border-green-200':'bg-red-50 border-red-200'}`}>
+            {status.msg}
+          </div>
+        )}
 
-          {!booking && (
-            <>
-              {/* Session & party size */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm mb-1">Sitting*</label>
-                  <select
-                    name="session"
-                    value={form.session}
-                    onChange={setField}
-                    className="w-full rounded-md border px-3 py-2"
-                  >
-                    <option value="" disabled>Choose a sitting</option>
-                    {availability.map(s => (
-                      <option key={s.session} value={s.session} disabled={s.remaining <= 0}>
-                        {SESSION_LABELS[s.session]} — {s.remaining} left
-                      </option>
-                    ))}
-                  </select>
+        <form onSubmit={submit} className="card p-6 grid gap-5" noValidate>
+          {/* Contact */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <input name="name" placeholder="Full name*" className="border rounded px-3 py-2" value={form.name} onChange={setField} required />
+            <input name="phone" placeholder="Phone*" className="border rounded px-3 py-2" value={form.phone} onChange={setField} required />
+          </div>
+          <input type="email" name="email" placeholder="Email*" className="border rounded px-3 py-2" value={form.email} onChange={setField} required />
+
+          {/* Sitting & party */}
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm mb-1">Sitting*</label>
+              <select
+                name="session"
+                className="border rounded px-3 py-2 w-full"
+                value={form.session}
+                onChange={setField}
+                required
+              >
+                <option value="">Choose a sitting</option>
+                {SITTINGS.map(sit => {
+                  const rem = availability[sit.id]?.remaining
+                  const isFull = typeof rem === 'number' && rem <= 0
+                  return (
+                    <option key={sit.id} value={sit.id} disabled={isFull}>
+                      {sit.label} — {typeof rem === 'number' ? (isFull ? 'Full' : `${rem} left`) : 'checking…'}
+                    </option>
+                  )
+                })}
+              </select>
+
+              {selectedId && (
+                <div className="text-xs text-black/60 mt-1">
+                  Capacity: {selectedCapacity ?? '—'} · Seats left:{' '}
+                  {typeof selectedRemaining === 'number' ? selectedRemaining : 'checking…'}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm mb-1">Adults*</label>
-                    <input
-                      type="number"
-                      name="adults"
-                      min="0"
-                      value={form.adults}
-                      onChange={setField}
-                      className="w-full rounded-md border px-3 py-2"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm mb-1">Children*</label>
-                    <input
-                      type="number"
-                      name="children"
-                      min="0"
-                      value={form.children}
-                      onChange={setField}
-                      className="w-full rounded-md border px-3 py-2"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Totals */}
-              <div className="text-sm">
-                <div><strong>Total guests:</strong> {totalGuests || 0}</div>
-                <div>Deposit due now: <strong>£{depositDue.toFixed(2)}</strong></div>
-                <div>Menu total on the day: £{totalPrice.toFixed(2)}</div>
-              </div>
-
-              {/* Contact */}
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm mb-1">Name*</label>
-                  <input
-                    name="name"
-                    value={form.name}
-                    onChange={setField}
-                    className="w-full rounded-md border px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm mb-1">Phone*</label>
-                  <input
-                    name="phone"
-                    value={form.phone}
-                    onChange={setField}
-                    className="w-full rounded-md border px-3 py-2"
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-sm mb-1">Email*</label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={form.email}
-                    onChange={setField}
-                    className="w-full rounded-md border px-3 py-2"
-                  />
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div className="grid gap-2">
-                <label className="inline-flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="hasAccessibilityNeeds"
-                    checked={form.hasAccessibilityNeeds}
-                    onChange={setField}
-                  />
-                  <span className="text-sm">I have accessibility needs</span>
-                </label>
-                {form.hasAccessibilityNeeds && (
-                  <textarea
-                    name="accessibilityNotes"
-                    rows="2"
-                    value={form.accessibilityNotes}
-                    onChange={setField}
-                    className="w-full rounded-md border px-3 py-2"
-                    placeholder="wheelchair access, step-free table…"
-                  />
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm mb-1">Allergies</label>
-                <textarea
-                  name="allergies"
-                  rows="2"
-                  value={form.allergies}
-                  onChange={setField}
-                  className="w-full rounded-md border px-3 py-2"
-                />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Special Notes</label>
-                <textarea
-                  name="specialNotes"
-                  rows="2"
-                  value={form.specialNotes}
-                  onChange={setField}
-                  className="w-full rounded-md border px-3 py-2"
-                />
-              </div>
-
-              {/* Step 1: Create PaymentIntent */}
-              {!clientSecret && (
-                <button
-                  type="button"
-                  className="btn btn-primary disabled:opacity-60"
-                  onClick={startPayment}
-                  disabled={loadingPI}
-                >
-                  {loadingPI ? 'Preparing secure payment…' : 'Pay Deposit & Reserve'}
-                </button>
               )}
-
-              {/* Step 2: Payment element */}
-              {clientSecret && stripePromise && (
-                <Elements stripe={stripePromise} options={elementsOptions}>
-                  <XmasPaymentStep
-                    clientSecret={clientSecret}
-                    form={form}
-                    setStatus={setStatus}
-                    onBooked={(j) => setBooking(j)}
-                  />
-                </Elements>
-              )}
-            </>
-          )}
-
-          {booking && (
-            <div className="text-sm text-black/70">
-              <div className="mt-2">Booking ID: <strong>{booking.bookingId}</strong></div>
-              <div className="mt-1">We’ve emailed your confirmation. See you on Christmas Day! 🎄</div>
             </div>
-          )}
-        </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm mb-1">Adults*</label>
+                <input name="partyAdults" type="number" min="0" className="border rounded px-3 py-2 w-full" value={form.partyAdults} onChange={setField} required />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Children*</label>
+                <input name="partyChildren" type="number" min="0" className="border rounded px-3 py-2 w-full" value={form.partyChildren} onChange={setField} required />
+              </div>
+            </div>
+          </div>
+
+          {/* Courses */}
+          {COURSES.map((course) => (
+            <div key={course} className="border rounded p-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="font-medium">{COURSE_LABELS[course]}</h3>
+                <div className={`text-sm ${courseOk[course] ? 'text-green-700' : 'text-black/70'}`}>
+                  {(totals[course] ?? 0)}/{totalGuests} selected
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                {(MENU[course] ?? []).map((item) => (
+                  <label key={item} className="flex items-center justify-between gap-3 border rounded px-3 py-2">
+                    <span className="text-sm">{item}</span>
+                    <input
+                      type="number"
+                      min="0"
+                      className="w-20 border rounded px-2 py-1 text-right"
+                      value={form?.[course]?.[item] ?? ''}
+                      onChange={(e) => setCount(course, item, e.target.value)}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                    />
+                  </label>
+                ))}
+              </div>
+
+              {!courseOk[course] && totalGuests > 0 && (
+                <div className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded px-2 py-1 mt-2">
+                  Please allocate exactly {totalGuests} {totalGuests === 1 ? 'dish' : 'dishes'} for {COURSE_LABELS[course]}.
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Notes */}
+          <textarea name="allergies" placeholder="Allergies" className="border rounded px-3 py-2" value={form.allergies} onChange={setField} />
+          <textarea name="occasionNotes" placeholder="Occasion (Birthday, Anniversary…)" className="border rounded px-3 py-2" value={form.occasionNotes} onChange={setField} />
+          <textarea name="specialNotes" placeholder="Special requests" className="border rounded px-3 py-2" value={form.specialNotes} onChange={setField} />
+
+          <div className="text-sm text-black/70">
+            <strong>Total guests:</strong> {totalGuests || 0}
+          </div>
+
+          <button type="submit" className="btn btn-primary disabled:opacity-60" disabled={sending || !allOk}>
+            {sending ? 'Starting checkout…' : 'Pay Deposit & Confirm'}
+          </button>
+        </form>
       </div>
     </section>
   )

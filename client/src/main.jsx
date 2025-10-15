@@ -22,6 +22,7 @@ import AdminEvents from './pages/Admin/AdminEvents'
 import AdminEventForm from './pages/Admin/AdminEventForm'
 import AdminBookings from './pages/Admin/AdminBookings'
 import ChristmasBookingPage from './pages/ChristmasBooking'
+import ChristmasSuccess from './pages/ChristmasSuccess'
 const router = createBrowserRouter([
   {
     path: '/',
@@ -37,6 +38,24 @@ const router = createBrowserRouter([
       { path: 'bookings', element: <Bookings /> },
       { path: 'contact', element: <Contact /> },
       { path: '/christmas', element: <ChristmasBookingPage /> },
+      { path: '/christmas/success', element: <ChristmasSuccess /> },
+      { path: '/christmas/success', element: <ChristmasSuccess /> },
+      {
+        path: '/christmas/cancel',
+        element: (
+          <section className="section">
+            <div className="container-outer text-center max-w-xl">
+              <h1 className="h1 mb-2">Payment Cancelled</h1>
+              <p className="text-black/70 mb-4">
+                Your payment was cancelled or not completed. You can try again anytime.
+              </p>
+              <a href="/christmas" className="btn btn-primary">
+                Back to Christmas Booking
+              </a>
+            </div>
+          </section>
+        ),
+      },
 
       // Admin
       {
