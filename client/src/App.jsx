@@ -1,6 +1,7 @@
 import { Outlet, NavLink } from 'react-router-dom'
 import { Menu, CalendarDays, Images, Phone, UtensilsCrossed } from 'lucide-react'
 import Header from './components/Headers'
+import ChristmasPromoModal from './components/ChristmasPromoModal'
 
 <Header></Header>
 
@@ -45,6 +46,7 @@ export default function App() {
   return (
     <div className="min-h-full flex flex-col">
       <Header />
+      <ChristmasPromoModal />
       <main className="flex-1">
         <Outlet />
       </main>
