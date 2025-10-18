@@ -371,3 +371,67 @@ body {
 }
 .lb-btn:hover { background: rgba(255,255,255,0.18); }
 
+
+/* --- Festive snow background (3 gentle layers) --- */
+.xmas-snow::before,
+.xmas-snow::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.xmas-snow::before {
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.9) 50%, transparent 51%),
+    radial-gradient(3px 3px at 140px 80px, rgba(255,255,255,0.8) 50%, transparent 51%),
+    radial-gradient(2px 2px at 90px 150px, rgba(255,255,255,0.85) 50%, transparent 51%),
+    radial-gradient(2px 2px at 200px 10px, rgba(255,255,255,0.9) 50%, transparent 51%);
+  background-size: 300px 300px;
+  animation: snowFloat 18s linear infinite;
+  opacity: 0.5;
+}
+
+.xmas-snow::after {
+  background-image:
+    radial-gradient(2px 2px at 60px 60px, rgba(255,255,255,0.8) 50%, transparent 51%),
+    radial-gradient(3px 3px at 120px 200px, rgba(255,255,255,0.75) 50%, transparent 51%),
+    radial-gradient(2px 2px at 250px 120px, rgba(255,255,255,0.85) 50%, transparent 51%),
+    radial-gradient(2px 2px at 20px 200px, rgba(255,255,255,0.8) 50%, transparent 51%);
+  background-size: 350px 350px;
+  animation: snowFloat2 22s linear infinite;
+  opacity: 0.5;
+}
+
+@keyframes snowFloat {
+  0%   { background-position: 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position: 0 600px, 0 600px, 0 600px, 0 600px; }
+}
+@keyframes snowFloat2 {
+  0%   { background-position: 0 0, 0 0, 0 0, 0 0; }
+  100% { background-position: 0 800px, 0 800px, 0 800px, 0 800px; }
+}
+
+/* --- Gift tag style (for total deposit) --- */
+.xmas-tag {
+  position: relative;
+  background: #fff1f2;          /* rose-50 */
+  color: #9f1239;               /* rose-800 */
+  border: 1px solid #fecdd3;    /* rose-200 */
+  padding: 6px 10px 6px 28px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.xmas-tag::before {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  background: #fff;
+  border: 2px solid #fecdd3;
+  border-radius: 999px;
+  transform: translateY(-50%);
+}

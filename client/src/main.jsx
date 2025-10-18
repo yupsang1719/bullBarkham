@@ -21,6 +21,7 @@ import AdminLogin from './pages/Admin/AdminLogin'
 import AdminEvents from './pages/Admin/AdminEvents'
 import AdminEventForm from './pages/Admin/AdminEventForm'
 import AdminBookings from './pages/Admin/AdminBookings'
+import AdminXmas from './pages/Admin/AdminXmas' 
 import ChristmasBookingPage from './pages/ChristmasBooking'
 import ChristmasSuccess from './pages/ChristmasSuccess'
 const router = createBrowserRouter([
@@ -38,7 +39,6 @@ const router = createBrowserRouter([
       { path: 'bookings', element: <Bookings /> },
       { path: 'contact', element: <Contact /> },
       { path: '/christmas', element: <ChristmasBookingPage /> },
-      { path: '/christmas/success', element: <ChristmasSuccess /> },
       { path: '/christmas/success', element: <ChristmasSuccess /> },
       {
         path: '/christmas/cancel',
@@ -66,7 +66,8 @@ const router = createBrowserRouter([
           { path: 'events', element: <RequireAuth><AdminEvents /></RequireAuth> },   // /admin/events
           { path: 'events/new', element: <RequireAuth><AdminEventForm /></RequireAuth> },
           { path: 'events/:id', element: <RequireAuth><AdminEventForm /></RequireAuth> },
-          { path: 'bookings', element: <RequireAuth><AdminBookings/></RequireAuth>}
+          { path: 'bookings', element: <RequireAuth><AdminBookings/></RequireAuth>},
+          { path: 'christmas', element: <RequireAuth><AdminXmas /></RequireAuth> },
         ]
       },
 
