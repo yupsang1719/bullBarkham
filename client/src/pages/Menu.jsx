@@ -112,7 +112,7 @@ export default function Menu() {
                           <div className="item-line">
                             <span className="item-name">{it.name}</span>
                             <span className="dot-leader" aria-hidden="true" />
-                            <span className="item-price">{it.price}</span>
+                            {/* <span className="item-price">{it.price}</span> */}
                           </div>
                           {it.ingredients && (
                             <div className="mt-0.5 text-[13px] leading-snug text-black/70 italic">
