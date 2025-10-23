@@ -42,9 +42,9 @@ export default function ShowtimeMenu() {
             {/* Header on paper */}
             <div className="text-center">
               <h2 className="victorian-title text-2xl sm:text-3xl tracking-wide">Quiz Night & Comedy Night Menu</h2>
-              <div className="mt-1 text-xs tracking-widest uppercase text-black/70">
+              {/* <div className="mt-1 text-xs tracking-widest uppercase text-black/70">
                 Choose any 3 for £10
-              </div>
+              </div> */}
               <div className="my-5 text-black/60">
                 <Flourish className="mx-auto h-5 w-56 text-black/40" />
               </div>
