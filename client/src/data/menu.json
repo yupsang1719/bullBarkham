@@ -19,12 +19,9 @@
     { "name": "Beer battered cod and chips, curry sauce mushy peas and tartare sauce"}
   ],
 
-  "Main — Grazing": [
-    { "name": "Olives, baked bread & flavoured butters", "ingredients": "", "price": "£8" },
-    { "name": "Honey & mustard pigs in blankets", "ingredients": "", "price": "£6" }
-  ],
-
   "Main — Starters": [
+    { "name": "Pan Seared Scallops, Butternut, Black Pudding, cappers, bacon", "badge": "New"},
+    { "name": "Honey & mustard pigs in blankets", "ingredients": "", "price": "£6" },
     { "name": "Cheddar, potato & truffle soup", "ingredients": "", "price": "£6" },
     { "name": "Crispy Fried Mac and Cheese Bites. Siracho Mayo.", "price": "£8" },
     { "name": "Steamed mussels", "ingredients": "Cider, bacon & English cream", "price": "£7" },
@@ -33,7 +30,9 @@
     { "name": "Teriyaki chicken wings, sesame, Soy , and chilli", "ingredients": "", "price": "£7" }
   ],
 
-  "Main — Mains": [
+  "Main — Mains(20% OFF Tues - Thursday)": [
+    { "name": "Local Game Stew. Stilton Dumplings. Parsley Mash", "price": "£18", "badge": "New"},
+    { "name": "Berkshire Venison Loin. Haggis. Poached Peas. Beetroot. Pumpkin", "price": "£20", "badge": "New"},
     { "name": "Slow‑cooked venison cottage pie", "ingredients": "Asparagus, peas & summer greens", "price": "£16" },
     { "name": "Lincolnshire sausage & champ", "ingredients": "Sweet onions, peas & port gravy", "price": "£15" },
     { "name": "The Bull’s ploughman", "ingredients": "Ham, cheddar or Barkham Blue; coleslaw, pickled onions, fresh baked baguette, apple‑celery chutney, boiled egg", "price": "£16" },
