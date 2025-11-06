@@ -260,7 +260,7 @@ export default function Bookings() {
 
                 {/* Lunch */}
                 {lunchSlots.length > 0 && (
-                  <optgroup label={dow === 0 ? 'Sunday Roast (12:00–16:00)' : 'Lunch (12:00–16:00)'}>
+                  <optgroup label={dow === 0 ? 'Sunday Roast (12:00–16:00)' : 'Lunch (12:00–15:00)'}>
                     {lunchSlots.map(s => (
                       <option key={s.time} value={s.time} disabled={s.closed || s.remaining <= 0}>
                         {s.time} {s.closed ? '— Closed' : (s.remaining <= 0 ? '— Full' : `— ${s.remaining} left`)}
@@ -271,7 +271,7 @@ export default function Bookings() {
 
                 {/* Dinner (Tue–Sat) */}
                 {dinnerSlots.length > 0 && (
-                  <optgroup label="Dinner (18:00–22:00)">
+                  <optgroup label="Dinner (18:00–21:00)">
                     {dinnerSlots.map(s => (
                       <option key={s.time} value={s.time} disabled={s.closed || s.remaining <= 0}>
                         {s.time} {s.closed ? '— Closed' : (s.remaining <= 0 ? '— Full' : `— ${s.remaining} left`)}

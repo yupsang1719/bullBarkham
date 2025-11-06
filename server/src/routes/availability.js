@@ -5,7 +5,7 @@ const Closure = require('../models/Closure')
 const { buildDaySlots, isIsoDate } = require('../utils/slots')
 
 // Cap per half-hour slot (online). We keep walk-in buffer outside online cap.
-const SLOT_CAP = 7
+const SLOT_CAP = 9
 
 router.get('/', async (req, res) => {
   try {

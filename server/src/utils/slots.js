@@ -2,8 +2,8 @@
 
 // Service windows by weekday (0=Sun..6=Sat)
 const WINDOWS = {
-  lunch:  { start: '12:00', end: '16:00' }, // Mon closed via servicesByDow
-  dinner: { start: '18:00', end: '22:00' }  // Tue–Sat only
+  lunch:  { start: '12:00', end: '15:00' }, // Mon closed via servicesByDow
+  dinner: { start: '18:00', end: '21:00' }  // Tue–Sat only
 }
 
 function toMinutes(hhmm) {
