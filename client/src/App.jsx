@@ -46,7 +46,7 @@ export default function App() {
   return (
     <div className="min-h-full flex flex-col">
       <Header />
-      <ChristmasPromoModal />
+      {/* <ChristmasPromoModal /> */}
       <main className="flex-1">
         <Outlet />
       </main>
