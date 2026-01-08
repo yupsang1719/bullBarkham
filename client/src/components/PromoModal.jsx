@@ -67,7 +67,7 @@ export default function ChristmasPromoModal() {
       <div ref={dialogRef} className="relative max-w-lg w-full rounded-2xl overflow-hidden shadow-2xl bg-white">
         {/* Header */}
         <div className="relative bg-gradient-to-r from-red-600 to-emerald-600 text-white p-4">
-          <h2 id="xmas-promo-title" className="text-xl font-bold">🎄 Christmas Day at The Bull</h2>
+          <h2 id="xmas-promo-title" className="text-xl font-bold">Important Notice</h2>
           <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 rotate-12">
             <span className="xmas-badge">Special Event</span>
           </div>
@@ -76,18 +76,15 @@ export default function ChristmasPromoModal() {
         {/* Body */}
         <div className="p-5 grid gap-3">
           <p id="xmas-promo-desc" className="text-black/80">
-            We’re taking <strong>Christmas Day bookings via a special form</strong> with pre-order and deposit.
-            Regular online bookings are <strong>closed for Christmas Day</strong>.
+            We’re <strong>Closed for now</strong> due to maintenance issue.
+            We will be back with <strong>Good News Soon</strong>.
+            Thank You for Continuous support.<br></br>
+            <i>'The Bull Barkham Team'</i>
           </p>
-          <ul className="text-sm text-black/70 list-disc pl-5 space-y-1">
-            <li>Two sittings: 12–2pm & 2:30–4:30pm</li>
-            <li>£95 adults · £50 children</li>
-            <li>Pre-order required · £25 deposit per guest</li>
-          </ul>
         </div>
 
         {/* Actions */}
-        <div className="p-5 pt-0 flex flex-wrap gap-2">
+        {/* <div className="p-5 pt-0 flex flex-wrap gap-2">
           <button
             ref={firstButtonRef}
             className="btn btn-primary"
@@ -101,7 +98,7 @@ export default function ChristmasPromoModal() {
           <button className="ml-auto btn btn-ghost" onClick={handleClose} aria-label="Close">
             Not now
           </button>
-        </div>
+        </div> */}
       </div>
     </div>
   )
